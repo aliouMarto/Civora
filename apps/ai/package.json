@@ -1,0 +1,11 @@
+{
+  "name": "@civora/ai",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "bash run_dev.sh",
+    "lint": "bash -c 'export PATH=\"/Users/alidiaby/.local/bin:$PATH\" && uv run ruff check app tests'",
+    "typecheck": "bash -c 'export PATH=\"/Users/alidiaby/.local/bin:$PATH\" && uv run mypy app'",
+    "test": "bash run_test.sh"
+  }
+}
