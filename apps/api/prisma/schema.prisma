@@ -39,7 +39,7 @@ model Entite {
   agence         Agence  @relation(fields: [agence_id], references: [id], onDelete: Restrict)
   nom            String
   raison_sociale String?
-  numero_legal   String? // RCCM, NIF…
+  numero_legal   String?
 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
@@ -49,19 +49,92 @@ model Entite {
 }
 
 model Utilisateur {
-  id                  String    @id @default(uuid()) @db.Uuid
-  agence_id           String    @db.Uuid
-  agence              Agence    @relation(fields: [agence_id], references: [id], onDelete: Restrict)
-  email               String    @unique
-  password_hash       String
-  nom                 String
-  prenom              String
-  statut              String    @default("invité") // invité | actif | désactivé
-  derniere_connexion  DateTime?
+  id                 String    @id @default(uuid()) @db.Uuid
+  agence_id          String    @db.Uuid
+  agence             Agence    @relation(fields: [agence_id], references: [id], onDelete: Restrict)
+  email              String    @unique
+  password_hash      String
+  nom                String
+  prenom             String
+  statut             String    @default("invite") // invite | actif | desactive
+  derniere_connexion DateTime?
 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
+  roles         UtilisateurRole[]
+  refresh_tokens RefreshToken[]
+
   @@index([agence_id])
   @@map("utilisateurs")
+}
+
+// ─────────────────────────────────────────────
+// RBAC — Rôles et permissions
+// ─────────────────────────────────────────────
+
+model Role {
+  id          String   @id @default(uuid()) @db.Uuid
+  agence_id   String?  @db.Uuid // null = rôle système global
+  nom         String
+  description String?
+  permissions String[] // ex: ["biens:read", "compta:read"]
+  systeme     Boolean  @default(false)
+
+  created_at DateTime @default(now())
+
+  utilisateurs UtilisateurRole[]
+
+  @@unique([agence_id, nom])
+  @@map("roles")
+}
+
+model UtilisateurRole {
+  utilisateur_id String      @db.Uuid
+  role_id        String      @db.Uuid
+  utilisateur    Utilisateur @relation(fields: [utilisateur_id], references: [id], onDelete: Cascade)
+  role           Role        @relation(fields: [role_id], references: [id], onDelete: Cascade)
+  assigned_at    DateTime    @default(now())
+
+  @@id([utilisateur_id, role_id])
+  @@map("utilisateur_roles")
+}
+
+// ─────────────────────────────────────────────
+// AUTH — Invitations & refresh tokens
+// ─────────────────────────────────────────────
+
+model Invitation {
+  id          String    @id @default(uuid()) @db.Uuid
+  agence_id   String    @db.Uuid
+  email       String
+  role_id     String    @db.Uuid
+  token_hash  String    // SHA-256 du token envoyé par email
+  expire_at   DateTime
+  utilisee_at DateTime?
+  created_by  String    @db.Uuid
+
+  created_at DateTime @default(now())
+
+  @@index([agence_id, email])
+  @@index([token_hash])
+  @@map("invitations")
+}
+
+model RefreshToken {
+  id             String    @id @default(uuid()) @db.Uuid
+  utilisateur_id String    @db.Uuid
+  utilisateur    Utilisateur @relation(fields: [utilisateur_id], references: [id], onDelete: Cascade)
+  token_hash     String    // SHA-256, jamais le token en clair
+  expire_at      DateTime
+  revoque_at     DateTime?
+  user_agent     String?
+  ip             String?
+  famille        String    @db.Uuid // pour la révocation en cascade (détection de rejeu)
+
+  created_at DateTime @default(now())
+
+  @@index([utilisateur_id])
+  @@index([token_hash])
+  @@map("refresh_tokens")
 }

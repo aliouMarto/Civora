@@ -1,37 +1,49 @@
 import { Injectable, NestMiddleware, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Request, Response, NextFunction } from 'express';
+import * as jwt from 'jsonwebtoken';
 
+import type { Env } from '../../infrastructure/config/env.schema';
+import type { JwtPayload } from '../auth/decorators/current-user.decorator';
 import { TenantContextService } from './tenant-context.service';
 
-/**
- * TenantMiddleware — extrait l'agence_id et positionne le contexte tenant.
- *
- * À l'étape 04 : lecture depuis le header `x-agence-id` (temporaire).
- * À l'étape 05 (auth JWT) : remplacé par l'extraction du claim JWT.
- *
- * Le header `x-agence-id` sera supprimé à l'étape 05.
- * Ne jamais le laisser actif en production.
- */
 @Injectable()
 export class TenantMiddleware implements NestMiddleware {
   private readonly logger = new Logger(TenantMiddleware.name);
 
-  constructor(private readonly tenantCtx: TenantContextService) {}
+  constructor(
+    private readonly tenantCtx: TenantContextService,
+    private readonly config: ConfigService<Env, true>,
+  ) {}
 
   use(req: Request, res: Response, next: NextFunction): void {
-    // TODO étape 05 : remplacer par extraction JWT
-    const agenceId = req.headers['x-agence-id'];
+    const agenceId = this.extractAgenceId(req);
 
-    if (!agenceId || typeof agenceId !== 'string' || agenceId.trim() === '') {
-      // Pas de tenant → on laisse passer sans contexte.
-      // TenantGuard bloquera les routes qui en ont besoin.
+    if (!agenceId) {
       next();
       return;
     }
 
-    this.tenantCtx.run(agenceId.trim(), () => {
-      this.logger.debug(`Tenant context set: ${agenceId}`);
+    this.tenantCtx.run(agenceId, () => {
+      this.logger.debug(`Tenant context: ${agenceId}`);
       next();
     });
+  }
+
+  private extractAgenceId(req: Request): string | null {
+    // 1. Extraction depuis le JWT (Authorization: Bearer <token>)
+    const authHeader = req.headers['authorization'];
+    if (authHeader?.startsWith('Bearer ')) {
+      const token = authHeader.slice(7);
+      try {
+        const secret = this.config.get('JWT_ACCESS_SECRET', { infer: true });
+        const payload = jwt.verify(token, secret) as JwtPayload;
+        if (payload.agence_id) return payload.agence_id;
+      } catch {
+        // Token invalide ou expiré → TenantGuard/JwtAuthGuard géreront l'erreur
+      }
+    }
+
+    return null;
   }
 }

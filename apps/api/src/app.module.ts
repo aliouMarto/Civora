@@ -3,7 +3,10 @@ import { ConfigModule } from '@nestjs/config';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AuthModule } from './_core/auth/auth.module';
 import { TenancyModule } from './_core/tenancy/tenancy.module';
+import { UsersModule } from './_core/users/users.module';
+import { RbacModule } from './_core/rbac/rbac.module';
 import { HealthModule } from './health/health.module';
 import { envSchema } from './infrastructure/config/env.schema';
 import { PrismaModule } from './infrastructure/prisma/prisma.module';
@@ -18,6 +21,9 @@ import { RedisModule } from './infrastructure/redis/redis.module';
     TenancyModule,
     PrismaModule,
     RedisModule,
+    AuthModule,
+    RbacModule,
+    UsersModule,
     HealthModule,
   ],
   controllers: [AppController],
