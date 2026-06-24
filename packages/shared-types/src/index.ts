@@ -1,13 +1,20 @@
-// Civora shared types — enrichis au fil des étapes
+// IDs branded
+export * from './ids';
 
-/**
- * Représentation d'un montant monétaire.
- * `amount` est toujours en centimes FCFA (entier bigint).
- * Jamais de float/double pour de l'argent.
- */
-export interface Money {
-  amount: bigint;
-  currency: 'XOF';
-}
+// Money
+export * from './money';
 
-export type { Money as default };
+// Address & GeoPoint
+export * from './address';
+
+// Period
+export * from './period';
+
+// Pagination
+export * from './pagination';
+
+// Tenant
+export * from './tenant';
+
+// Errors
+export * from './errors';
