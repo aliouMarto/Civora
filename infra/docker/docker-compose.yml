@@ -50,6 +50,17 @@ services:
       timeout: 5s
       retries: 5
 
+  # ── MailHog — capture SMTP en dev (UI sur http://localhost:8025) ────────────
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: civora-mailhog
+    restart: unless-stopped
+    ports:
+      - '1025:1025'   # SMTP
+      - '8025:8025'   # UI Web
+    networks:
+      - civora_net
+
   # ── MinIO — S3-compatible pour le dev local (remplace Cloudflare R2) ────────
   minio:
     image: minio/minio:latest

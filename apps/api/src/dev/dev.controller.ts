@@ -1,6 +1,7 @@
 import { Controller, Post, Req, Body } from '@nestjs/common';
 import { Request } from 'express';
 import { randomUUID } from 'node:crypto';
+import { NotificationsService } from '../_core/notifications/notifications.service';
 
 import type { JwtPayload } from '../_core/auth/decorators/current-user.decorator';
 import { CurrentUser } from '../_core/auth/decorators/current-user.decorator';
@@ -19,6 +20,7 @@ export class DevController {
     private readonly eventBus: EventBusService,
     private readonly prisma: PrismaService,
     private readonly queueManager: QueueManagerService,
+    private readonly notifications: NotificationsService,
   ) {}
 
   @Post('emit-test-event')
@@ -72,5 +74,19 @@ export class DevController {
       job_id: jobId,
       message: `Job demo.ping enfilé dans la queue "${DEMO_QUEUE}" (job_id: ${jobId})`,
     };
+  }
+
+  @Post('notifications/test-email')
+  async testEmail(
+    @CurrentUser() user: JwtPayload,
+    @Body() body: { to: string; template?: string; vars?: Record<string, string> },
+  ) {
+    return this.notifications.send({
+      to: { email: body.to },
+      channel: 'email',
+      template: body.template ?? 'invitation',
+      vars: body.vars ?? { nom: 'Testeur', nom_agence: 'CIVORA Dev', lien: 'http://localhost:3000', expiry: '24h' },
+      language: 'fr',
+    });
   }
 }

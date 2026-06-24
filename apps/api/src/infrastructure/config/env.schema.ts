@@ -12,6 +12,13 @@ export const envSchema = z.object({
   JWT_ACCESS_EXPIRES_IN: z.string().default('15m'),
   JWT_REFRESH_EXPIRES_DAYS: z.coerce.number().int().positive().default(14),
   OUTBOX_POLL_INTERVAL_MS: z.coerce.number().int().positive().default(200),
+  // ── SMTP (email) ─────────────────────────────────────────────────────────
+  SMTP_HOST: z.string().default('localhost'),
+  SMTP_PORT: z.coerce.number().int().positive().default(1025),
+  SMTP_SECURE: z.coerce.boolean().default(false),
+  SMTP_FROM: z.string().default('Civora <no-reply@civora.io>'),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
   // ── Stockage R2 (production) ──────────────────────────────────────────────
   R2_ACCOUNT_ID: z.string().optional(),
   R2_ACCESS_KEY_ID: z.string().optional(),

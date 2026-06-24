@@ -191,3 +191,27 @@ model JobDeadLetter {
   @@index([queue, failed_at])
   @@map("job_dead_letters")
 }
+
+// ─────────────────────────────────────────────
+// NOTIFICATIONS — Email / SMS / WhatsApp / In-App
+// ─────────────────────────────────────────────
+
+model Notification {
+  id             String    @id @default(uuid()) @db.Uuid
+  agence_id      String    @db.Uuid
+  utilisateur_id String?   @db.Uuid
+  contact_id     String?   @db.Uuid
+  channel        String                            // 'in-app' | 'email' | 'sms' | 'whatsapp'
+  template       String
+  vars           Json
+  status         String    @default("queued")      // 'queued' | 'sent' | 'failed' | 'read'
+  external_id    String?
+  error          String?
+  sent_at        DateTime?
+  read_at        DateTime?
+  created_at     DateTime  @default(now())
+
+  @@index([agence_id, utilisateur_id, status])
+  @@index([agence_id, channel, status])
+  @@map("notifications")
+}
