@@ -4,11 +4,12 @@ import { EventsModule } from '../_core/events/events.module';
 import { JobsModule } from '../_core/jobs/jobs.module';
 import { NotificationsModule } from '../_core/notifications/notifications.module';
 import { AiModule } from '../_core/ai/ai.module';
+import { RealtimeModule } from '../_core/realtime/realtime.module';
 import { PrismaModule } from '../infrastructure/prisma/prisma.module';
 import { DevController } from './dev.controller';
 
 @Module({
-  imports: [EventsModule, JobsModule, NotificationsModule, AiModule, PrismaModule],
+  imports: [EventsModule, JobsModule, NotificationsModule, AiModule, RealtimeModule, PrismaModule],
   controllers: [DevController],
 })
 export class DevModule {}

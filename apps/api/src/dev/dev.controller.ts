@@ -3,6 +3,7 @@ import { Request } from 'express';
 import { randomUUID } from 'node:crypto';
 import { NotificationsService } from '../_core/notifications/notifications.service';
 import { AiGatewayService } from '../_core/ai/ai-gateway.service';
+import { RealtimeService } from '../_core/realtime/realtime.service';
 
 import type { JwtPayload } from '../_core/auth/decorators/current-user.decorator';
 import { CurrentUser } from '../_core/auth/decorators/current-user.decorator';
@@ -23,6 +24,7 @@ export class DevController {
     private readonly queueManager: QueueManagerService,
     private readonly notifications: NotificationsService,
     private readonly aiGateway: AiGatewayService,
+    private readonly realtime: RealtimeService,
   ) {}
 
   @Post('emit-test-event')
@@ -76,6 +78,20 @@ export class DevController {
       job_id: jobId,
       message: `Job demo.ping enfilé dans la queue "${DEMO_QUEUE}" (job_id: ${jobId})`,
     };
+  }
+
+  @Post('realtime/emit-test')
+  emitRealtimeTest(@CurrentUser() user: JwtPayload): { emitted: boolean } {
+    this.realtime.emitToTenant(user.agence_id, 'demo.event', {
+      message: 'Événement temps réel de test',
+      actor_id: user.sub,
+      ts: new Date().toISOString(),
+    });
+    this.realtime.emitToUser(user.sub, 'demo.personal', {
+      message: 'Notification personnelle de test',
+      ts: new Date().toISOString(),
+    });
+    return { emitted: true };
   }
 
   @Post('ai/chat-test')

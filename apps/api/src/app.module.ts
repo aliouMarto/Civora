@@ -9,6 +9,7 @@ import { JobsModule } from './_core/jobs/jobs.module';
 import { StorageModule } from './_core/storage/storage.module';
 import { NotificationsModule } from './_core/notifications/notifications.module';
 import { AiModule } from './_core/ai/ai.module';
+import { RealtimeModule } from './_core/realtime/realtime.module';
 import { BullBoardModule } from './_core/jobs/bull-board.module';
 import { TenancyModule } from './_core/tenancy/tenancy.module';
 import { UsersModule } from './_core/users/users.module';
@@ -36,6 +37,7 @@ import { RedisModule } from './infrastructure/redis/redis.module';
     StorageModule,
     NotificationsModule,
     AiModule,
+    RealtimeModule,
     HealthModule,
     ...(process.env['NODE_ENV'] !== 'production' ? [DevModule, BullBoardModule] : []),
   ],
