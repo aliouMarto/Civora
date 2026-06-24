@@ -12,6 +12,16 @@ export const envSchema = z.object({
   JWT_ACCESS_EXPIRES_IN: z.string().default('15m'),
   JWT_REFRESH_EXPIRES_DAYS: z.coerce.number().int().positive().default(14),
   OUTBOX_POLL_INTERVAL_MS: z.coerce.number().int().positive().default(200),
+  // ── Stockage R2 (production) ──────────────────────────────────────────────
+  R2_ACCOUNT_ID: z.string().optional(),
+  R2_ACCESS_KEY_ID: z.string().optional(),
+  R2_SECRET_ACCESS_KEY: z.string().optional(),
+  R2_BUCKET: z.string().optional(),
+  // ── MinIO (dev / test) ────────────────────────────────────────────────────
+  MINIO_ENDPOINT: z.string().url().optional(),
+  MINIO_ACCESS_KEY: z.string().optional(),
+  MINIO_SECRET_KEY: z.string().optional(),
+  MINIO_BUCKET: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

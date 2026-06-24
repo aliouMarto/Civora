@@ -6,6 +6,7 @@ import { AppService } from './app.service';
 import { AuthModule } from './_core/auth/auth.module';
 import { EventsModule } from './_core/events/events.module';
 import { JobsModule } from './_core/jobs/jobs.module';
+import { StorageModule } from './_core/storage/storage.module';
 import { BullBoardModule } from './_core/jobs/bull-board.module';
 import { TenancyModule } from './_core/tenancy/tenancy.module';
 import { UsersModule } from './_core/users/users.module';
@@ -30,6 +31,7 @@ import { RedisModule } from './infrastructure/redis/redis.module';
     UsersModule,
     EventsModule,
     JobsModule,
+    StorageModule,
     HealthModule,
     ...(process.env['NODE_ENV'] !== 'production' ? [DevModule, BullBoardModule] : []),
   ],
