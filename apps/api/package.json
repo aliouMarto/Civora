@@ -12,11 +12,19 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@civora/shared-types": "workspace:*",
     "@nestjs/common": "^11.0.1",
+    "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
+    "@prisma/client": "^6.0.0",
+    "ioredis": "^5.4.1",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "zod": "^3.24.0"
+  },
+  "prisma": {
+    "schema": "prisma/schema.prisma"
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.0",
@@ -28,6 +36,7 @@
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "@vitest/coverage-v8": "^2.1.8",
+    "prisma": "^6.0.0",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-import": "^2.31.0",

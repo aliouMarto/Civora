@@ -21,9 +21,13 @@ describe('GET /health', () => {
     await app.close();
   });
 
-  it('returns 200 with { status: "ok" }', async () => {
+  it('returns 200 with status, db, and redis fields', async () => {
     const response = await supertest(app.getHttpServer()).get('/health');
     expect(response.status).toBe(200);
-    expect(response.body).toEqual({ status: 'ok' });
+    expect(response.body).toMatchObject({
+      status: 'ok',
+      db: 'ok',
+      redis: 'ok',
+    });
   });
 });
