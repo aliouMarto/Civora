@@ -11,6 +11,7 @@ import { NotificationsModule } from './_core/notifications/notifications.module'
 import { AiModule } from './_core/ai/ai.module';
 import { RealtimeModule } from './_core/realtime/realtime.module';
 import { AuditModule } from './_core/audit/audit.module';
+import { WorkflowsModule } from './_core/workflows/workflows.module';
 import { ObservabilityModule } from './_core/observability/observability.module';
 import { BullBoardModule } from './_core/jobs/bull-board.module';
 import { TenancyModule } from './_core/tenancy/tenancy.module';
@@ -41,6 +42,7 @@ import { RedisModule } from './infrastructure/redis/redis.module';
     AiModule,
     RealtimeModule,
     AuditModule,
+    WorkflowsModule,
     ObservabilityModule,
     HealthModule,
     ...(process.env['NODE_ENV'] !== 'production' ? [DevModule, BullBoardModule] : []),

@@ -258,6 +258,53 @@ model AiEmbedding {
 }
 
 // ─────────────────────────────────────────────
+// WORKFLOWS — Moteur d'automatisation
+// ─────────────────────────────────────────────
+
+model Workflow {
+  id          String   @id @default(uuid()) @db.Uuid
+  agence_id   String   @db.Uuid
+  code        String
+  nom         String
+  description String?
+  type        String                          // 'ia' | 'rule' | 'mixed'
+  statut      String   @default("inactif")    // 'actif' | 'inactif'
+  trigger     Json
+  conditions  Json
+  actions     Json
+  params      Json
+  version     Int      @default(1)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  runs WorkflowRun[]
+
+  @@unique([agence_id, code, version])
+  @@index([agence_id, statut])
+  @@map("workflows")
+}
+
+model WorkflowRun {
+  id               String    @id @default(uuid()) @db.Uuid
+  agence_id        String    @db.Uuid
+  workflow_id      String    @db.Uuid
+  workflow_version Int       @default(1)
+  trigger_event_id String?   @db.Uuid
+  status           String                          // 'success' | 'partial' | 'failed' | 'skipped'
+  conditions_result Json
+  actions_log      Json
+  error            String?
+  dry_run          Boolean   @default(false)
+  started_at       DateTime  @default(now())
+  finished_at      DateTime?
+
+  workflow Workflow @relation(fields: [workflow_id], references: [id])
+
+  @@index([agence_id, workflow_id, started_at])
+  @@map("workflow_runs")
+}
+
+// ─────────────────────────────────────────────
 // AUDIT — Journal immuable
 // ─────────────────────────────────────────────
 
