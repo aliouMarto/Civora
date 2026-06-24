@@ -138,3 +138,36 @@ model RefreshToken {
   @@index([token_hash])
   @@map("refresh_tokens")
 }
+
+// ─────────────────────────────────────────────
+// DOMAIN EVENTS — Outbox pattern
+// ─────────────────────────────────────────────
+
+model DomainEvent {
+  id             String    @id @default(uuid()) @db.Uuid
+  agence_id      String?   @db.Uuid                    // null si événement système
+  type           String                                // ex: "bail.signe", "paiement.recu"
+  version        Int       @default(1)                 // versionnement du schéma de payload
+  aggregate_type String                                // ex: "Bail"
+  aggregate_id   String    @db.Uuid                    // l'ID de l'agrégat concerné
+  payload        Json
+  metadata       Json                                  // { actor_id, correlation_id, causation_id, ip, user_agent }
+  occurred_at    DateTime  @default(now())
+  published_at   DateTime?                             // null tant que non publié
+  attempts       Int       @default(0)
+  last_error     String?
+
+  @@index([published_at])
+  @@index([agence_id, type])
+  @@index([aggregate_type, aggregate_id])
+  @@map("domain_events")
+}
+
+model EventHandlerOffset {
+  handler_name String
+  event_id     String   @db.Uuid
+  processed_at DateTime @default(now())
+
+  @@id([handler_name, event_id])
+  @@map("event_handler_offsets")
+}
