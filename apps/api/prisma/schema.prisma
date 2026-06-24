@@ -257,6 +257,29 @@ model AiEmbedding {
   @@map("ai_embeddings")
 }
 
+// ─────────────────────────────────────────────
+// AUDIT — Journal immuable
+// ─────────────────────────────────────────────
+
+model AuditLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  agence_id   String?  @db.Uuid
+  actor_id    String?  @db.Uuid
+  actor_type  String                              // 'user' | 'system' | 'job'
+  action      String
+  entity_type String?
+  entity_id   String?  @db.Uuid
+  before      Json?
+  after       Json?
+  metadata    Json
+  occurred_at DateTime @default(now())
+
+  @@index([agence_id, occurred_at])
+  @@index([agence_id, entity_type, entity_id])
+  @@index([agence_id, action])
+  @@map("audit_log")
+}
+
 model AiBudget {
   id              String   @id @default(uuid()) @db.Uuid
   agence_id       String   @db.Uuid @unique

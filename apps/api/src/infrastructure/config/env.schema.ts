@@ -13,6 +13,8 @@ export const envSchema = z.object({
   JWT_REFRESH_EXPIRES_DAYS: z.coerce.number().int().positive().default(14),
   OUTBOX_POLL_INTERVAL_MS: z.coerce.number().int().positive().default(200),
   // ── SMTP (email) ─────────────────────────────────────────────────────────
+  // ── Observabilité ─────────────────────────────────────────────────────────
+  SENTRY_DSN: z.string().url().optional(),
   // ── IA — Passerelle générative ───────────────────────────────────────────
   AI_PROVIDER_MODE: z.enum(['auto', 'fake', 'openai', 'gemini']).default('fake'),
   OPENAI_API_KEY: z.string().optional(),
