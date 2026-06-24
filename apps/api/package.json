@@ -13,6 +13,8 @@
     "seed": "ts-node --project tsconfig.json -e \"require('tsconfig-paths/register')\" prisma/seed.ts"
   },
   "dependencies": {
+    "@bull-board/api": "^8.0.1",
+    "@bull-board/express": "^8.0.1",
     "@civora/shared-types": "workspace:*",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.0",

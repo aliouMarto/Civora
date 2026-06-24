@@ -171,3 +171,23 @@ model EventHandlerOffset {
   @@id([handler_name, event_id])
   @@map("event_handler_offsets")
 }
+
+// ─────────────────────────────────────────────
+// ASYNC JOBS — Dead Letter Queue
+// ─────────────────────────────────────────────
+
+model JobDeadLetter {
+  id        String   @id @default(uuid()) @db.Uuid
+  agence_id String?  @db.Uuid
+  queue     String
+  job_name  String
+  job_id    String
+  payload   Json
+  error     String
+  stack     String?
+  attempts  Int
+  failed_at DateTime @default(now())
+
+  @@index([queue, failed_at])
+  @@map("job_dead_letters")
+}

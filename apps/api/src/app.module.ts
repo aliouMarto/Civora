@@ -5,6 +5,8 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './_core/auth/auth.module';
 import { EventsModule } from './_core/events/events.module';
+import { JobsModule } from './_core/jobs/jobs.module';
+import { BullBoardModule } from './_core/jobs/bull-board.module';
 import { TenancyModule } from './_core/tenancy/tenancy.module';
 import { UsersModule } from './_core/users/users.module';
 import { RbacModule } from './_core/rbac/rbac.module';
@@ -27,8 +29,9 @@ import { RedisModule } from './infrastructure/redis/redis.module';
     RbacModule,
     UsersModule,
     EventsModule,
+    JobsModule,
     HealthModule,
-    ...(process.env['NODE_ENV'] !== 'production' ? [DevModule] : []),
+    ...(process.env['NODE_ENV'] !== 'production' ? [DevModule, BullBoardModule] : []),
   ],
   controllers: [AppController],
   providers: [AppService],
