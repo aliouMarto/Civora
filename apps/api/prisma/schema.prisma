@@ -215,3 +215,55 @@ model Notification {
   @@index([agence_id, channel, status])
   @@map("notifications")
 }
+
+// ─────────────────────────────────────────────
+// AI — Passerelle IA générative
+// ─────────────────────────────────────────────
+
+model AiCall {
+  id             String   @id @default(uuid()) @db.Uuid
+  agence_id      String   @db.Uuid
+  module         String
+  task           String                              // 'chat' | 'embed' | 'classify'
+  provider       String                              // 'gemini' | 'openai' | 'fake'
+  model          String
+  input_tokens   Int
+  output_tokens  Int
+  cost_cents     Int                                 // centimes USD
+  latency_ms     Int
+  status         String                              // 'ok' | 'error' | 'timeout' | 'blocked_by_budget'
+  prompt_hash    String?
+  error          String?
+  correlation_id String?  @db.Uuid
+  created_at     DateTime @default(now())
+
+  @@index([agence_id, created_at])
+  @@index([agence_id, module, task])
+  @@map("ai_calls")
+}
+
+model AiEmbedding {
+  id          String   @id @default(uuid()) @db.Uuid
+  agence_id   String   @db.Uuid
+  source_type String                                // 'document' | 'bien' | 'contact'
+  source_id   String   @db.Uuid
+  chunk_index Int      @default(0)
+  content     String
+  embedding   Unsupported("vector(1536)")
+  model       String
+  created_at  DateTime @default(now())
+
+  @@index([agence_id, source_type, source_id])
+  @@map("ai_embeddings")
+}
+
+model AiBudget {
+  id              String   @id @default(uuid()) @db.Uuid
+  agence_id       String   @db.Uuid @unique
+  monthly_limit_cents Int  @default(1000)           // 10 USD par défaut
+  current_month   String                            // 'YYYY-MM'
+  used_cents      Int      @default(0)
+  updated_at      DateTime @updatedAt
+
+  @@map("ai_budgets")
+}

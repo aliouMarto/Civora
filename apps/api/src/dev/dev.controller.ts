@@ -2,6 +2,7 @@ import { Controller, Post, Req, Body } from '@nestjs/common';
 import { Request } from 'express';
 import { randomUUID } from 'node:crypto';
 import { NotificationsService } from '../_core/notifications/notifications.service';
+import { AiGatewayService } from '../_core/ai/ai-gateway.service';
 
 import type { JwtPayload } from '../_core/auth/decorators/current-user.decorator';
 import { CurrentUser } from '../_core/auth/decorators/current-user.decorator';
@@ -21,6 +22,7 @@ export class DevController {
     private readonly prisma: PrismaService,
     private readonly queueManager: QueueManagerService,
     private readonly notifications: NotificationsService,
+    private readonly aiGateway: AiGatewayService,
   ) {}
 
   @Post('emit-test-event')
@@ -74,6 +76,19 @@ export class DevController {
       job_id: jobId,
       message: `Job demo.ping enfilé dans la queue "${DEMO_QUEUE}" (job_id: ${jobId})`,
     };
+  }
+
+  @Post('ai/chat-test')
+  async chatTest(
+    @CurrentUser() user: JwtPayload,
+    @Body() body: { template?: string; vars?: Record<string, string> },
+  ) {
+    return this.aiGateway.chat({
+      template: body.template ?? 'smoke.hello',
+      vars: body.vars ?? { name: 'Sory' },
+      module: '_dev',
+      correlationId: randomUUID(),
+    });
   }
 
   @Post('notifications/test-email')
