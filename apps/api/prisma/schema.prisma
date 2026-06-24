@@ -1,6 +1,6 @@
 // Civora — Schéma Prisma
 // ORM : Prisma (PAS TypeORM)
-// Toute table métier portera agence_id + RLS PostgreSQL (ajoutés étape par étape)
+// RÈGLE : toute table métier porte agence_id + RLS PostgreSQL
 
 generator client {
   provider = "prisma-client-js"
@@ -11,4 +11,57 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Les modèles métier seront ajoutés à partir de l'étape 03+
+// ─────────────────────────────────────────────
+// TENANCY — 3 niveaux : Agence > Entite > Utilisateur
+// ─────────────────────────────────────────────
+
+model Agence {
+  id         String   @id @default(uuid()) @db.Uuid
+  nom        String
+  slug       String   @unique
+  devise     String   @default("XOF")
+  fuseau     String   @default("Africa/Abidjan")
+  langue     String   @default("fr")
+  statut     String   @default("active") // active | suspendue | archivée
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  entites      Entite[]
+  utilisateurs Utilisateur[]
+
+  @@map("agences")
+}
+
+model Entite {
+  id             String  @id @default(uuid()) @db.Uuid
+  agence_id      String  @db.Uuid
+  agence         Agence  @relation(fields: [agence_id], references: [id], onDelete: Restrict)
+  nom            String
+  raison_sociale String?
+  numero_legal   String? // RCCM, NIF…
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([agence_id])
+  @@map("entites")
+}
+
+model Utilisateur {
+  id                  String    @id @default(uuid()) @db.Uuid
+  agence_id           String    @db.Uuid
+  agence              Agence    @relation(fields: [agence_id], references: [id], onDelete: Restrict)
+  email               String    @unique
+  password_hash       String
+  nom                 String
+  prenom              String
+  statut              String    @default("invité") // invité | actif | désactivé
+  derniere_connexion  DateTime?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([agence_id])
+  @@map("utilisateurs")
+}

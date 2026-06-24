@@ -35,7 +35,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    include: ['test/**/*.spec.ts', 'src/**/*.test.ts'],
+    include: ['test/**/*.spec.ts', 'src/**/*.test.ts', 'src/**/*.spec.ts'],
     env: {
       DATABASE_URL: rootEnv['DATABASE_URL'] ?? 'postgresql://civora:civora_secret@localhost:5432/civora',
       REDIS_URL: rootEnv['REDIS_URL'] ?? 'redis://localhost:6379',
