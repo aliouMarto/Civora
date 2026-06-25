@@ -1,0 +1,170 @@
+name: civora-prod
+
+x-common-env: &common-env
+  NODE_ENV: production
+  DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
+  REDIS_URL: ${REDIS_URL:?REDIS_URL is required}
+
+services:
+  # ─── API (NestJS) ────────────────────────────────────────────────────────
+  api:
+    image: ${REGISTRY:-ghcr.io}/${IMAGE_PREFIX:-owner/civora}-api:${IMAGE_TAG:-latest}
+    container_name: civora-api
+    restart: unless-stopped
+    environment:
+      <<: *common-env
+      PORT: 3001
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?required}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?required}
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      AI_PROVIDER_MODE: ${AI_PROVIDER_MODE:-gemini}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      R2_ACCOUNT_ID: ${R2_ACCOUNT_ID:-}
+      R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID:-}
+      R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY:-}
+      R2_BUCKET: ${R2_BUCKET:-}
+      WEB_ORIGINS: ${WEB_ORIGINS:-http://localhost:3000}
+    ports:
+      - '3001:3001'
+    networks:
+      - civora_net
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:3001/health']
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '5'
+
+  # ─── Web (Next.js) ───────────────────────────────────────────────────────
+  web:
+    image: ${REGISTRY:-ghcr.io}/${IMAGE_PREFIX:-owner/civora}-web:${IMAGE_TAG:-latest}
+    container_name: civora-web
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://api:3001}
+      PORT: 3000
+    ports:
+      - '3000:3000'
+    networks:
+      - civora_net
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:3000']
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '5'
+
+  # ─── AI service (FastAPI) ────────────────────────────────────────────────
+  ai:
+    image: ${REGISTRY:-ghcr.io}/${IMAGE_PREFIX:-owner/civora}-ai:${IMAGE_TAG:-latest}
+    container_name: civora-ai
+    restart: unless-stopped
+    environment:
+      PORT: 8000
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+    ports:
+      - '8000:8000'
+    networks:
+      - civora_net
+    healthcheck:
+      test: ['CMD', 'python', '-c', "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '5'
+
+  # ─── Redis ───────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: civora-redis
+    restart: unless-stopped
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - civora_redis:/data
+    networks:
+      - civora_net
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    logging:
+      driver: json-file
+      options:
+        max-size: '5m'
+        max-file: '3'
+
+  # ─── Gotenberg (PDF generation) ─────────────────────────────────────────
+  gotenberg:
+    image: gotenberg/gotenberg:8
+    container_name: civora-gotenberg
+    restart: unless-stopped
+    command:
+      - gotenberg
+      - --chromium-disable-javascript=true
+      - --chromium-allow-list=file:///tmp/.*
+    networks:
+      - civora_net
+    logging:
+      driver: json-file
+      options:
+        max-size: '5m'
+        max-file: '3'
+
+  # ─── Nginx reverse proxy ─────────────────────────────────────────────────
+  nginx:
+    image: nginx:alpine
+    container_name: civora-nginx
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - civora_certs:/etc/nginx/certs:ro
+    networks:
+      - civora_net
+    depends_on:
+      - api
+      - web
+    logging:
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '5'
+
+networks:
+  civora_net:
+    driver: bridge
+
+volumes:
+  civora_redis:
+  civora_certs:

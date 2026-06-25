@@ -1,0 +1,85 @@
+name: Database Backup & Restore Test
+
+on:
+  schedule:
+    # Daily backup at 02:00 UTC
+    - cron: '0 2 * * *'
+    # Weekly restore test every Monday at 03:00 UTC
+    - cron: '0 3 * * 1'
+  workflow_dispatch:
+    inputs:
+      run_restore_test:
+        description: 'Also run restore test after backup'
+        type: boolean
+        default: false
+
+jobs:
+  backup:
+    name: PostgreSQL backup → R2
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install tools
+        run: sudo apt-get install -y gpg postgresql-client awscli
+
+      - name: Run backup
+        run: bash infra/backup/pg-backup.sh
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET: ${{ secrets.R2_BACKUP_BUCKET }}
+          BACKUP_GPG_KEY: ${{ secrets.BACKUP_GPG_KEY }}
+          BACKUP_RETENTION_DAYS: '30'
+          BACKUP_RETENTION_MONTHLY: '12'
+
+      - name: Upload backup report as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backup-report-${{ github.run_id }}
+          path: /tmp/civora-backup-report.txt
+          retention-days: 30
+
+  restore-test:
+    name: Restore test (weekly)
+    runs-on: ubuntu-latest
+    environment: production
+    # Run on Monday cron OR manual trigger with flag
+    if: >
+      github.event.schedule == '0 3 * * 1' ||
+      (github.event_name == 'workflow_dispatch' && inputs.run_restore_test == true)
+    needs: backup
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install tools
+        run: sudo apt-get install -y gpg postgresql-client awscli
+
+      - name: Run restore test
+        run: bash infra/backup/pg-restore-test.sh
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET: ${{ secrets.R2_BACKUP_BUCKET }}
+          BACKUP_GPG_KEY: ${{ secrets.BACKUP_GPG_KEY }}
+          RESTORE_TEST_DB: civora_restore_test
+
+      - name: Upload restore report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: restore-report-${{ github.run_id }}
+          path: /tmp/civora-restore-report.txt
+          retention-days: 30
+
+      - name: Fail loudly on restore failure
+        if: failure()
+        run: |
+          echo "::error::RESTORE TEST FAILED — backup is NOT verified. Investigate immediately."
+          exit 1

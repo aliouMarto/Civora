@@ -3,6 +3,9 @@ import type { NextConfig } from 'next';
 const isProd = process.env['NODE_ENV'] === 'production';
 
 const nextConfig: NextConfig = {
+  // Required for Docker standalone deployment
+  output: isProd ? 'standalone' : undefined,
+
   env: {
     NEXT_PUBLIC_API_URL: process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:3001',
   },

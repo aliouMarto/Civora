@@ -1,0 +1,158 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: [main, develop]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '9'
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  # ─── Lint + typecheck ──────────────────────────────────────────────────────
+  lint-typecheck:
+    name: Lint & Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Restore Turbo cache
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-lint-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ github.sha }}
+          restore-keys: |
+            turbo-lint-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}-
+            turbo-lint-${{ runner.os }}-
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+  # ─── Tests API + Web ───────────────────────────────────────────────────────
+  test-node:
+    name: Tests (API + Web)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Restore Turbo cache
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-test-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ github.sha }}
+          restore-keys: |
+            turbo-test-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}-
+            turbo-test-${{ runner.os }}-
+
+      - name: Run tests
+        run: pnpm test
+        env:
+          # Unit tests only — no real DB needed
+          NODE_ENV: test
+          DATABASE_URL: postgresql://civora:civora@localhost:5432/civora_test
+          REDIS_URL: redis://localhost:6379
+          JWT_ACCESS_SECRET: ci-test-secret-access-32chars!!
+          JWT_REFRESH_SECRET: ci-test-secret-refresh-32chars!
+          NEXT_PUBLIC_API_URL: http://localhost:3001
+
+  # ─── Tests AI (Python) ─────────────────────────────────────────────────────
+  test-python:
+    name: Tests (AI / Python)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Install dependencies
+        working-directory: apps/ai
+        run: uv sync --frozen
+
+      - name: Lint (ruff)
+        working-directory: apps/ai
+        run: uv run ruff check .
+
+      - name: Typecheck (mypy)
+        working-directory: apps/ai
+        run: uv run mypy app/ --ignore-missing-imports
+
+      - name: Run tests
+        working-directory: apps/ai
+        run: uv run pytest tests/ -v
+
+  # ─── Build Docker images (smoke only, no push) ─────────────────────────────
+  build-check:
+    name: Docker build check
+    runs-on: ubuntu-latest
+    needs: [lint-typecheck, test-node, test-python]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build API image (no push)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: infra/docker/Dockerfile.api
+          push: false
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,mode=max,scope=api
+
+      - name: Build Web image (no push)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: infra/docker/Dockerfile.web
+          push: false
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,mode=max,scope=web
+
+      - name: Build AI image (no push)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: infra/docker/Dockerfile.ai
+          push: false
+          cache-from: type=gha,scope=ai
+          cache-to: type=gha,mode=max,scope=ai

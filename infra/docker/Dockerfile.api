@@ -1,0 +1,66 @@
+# syntax=docker/dockerfile:1.7
+# ─── Stage 1: deps ───────────────────────────────────────────────────────────
+FROM node:20-alpine AS deps
+
+RUN corepack enable && corepack prepare pnpm@9 --activate
+
+WORKDIR /app
+
+# Install only production-relevant workspace deps first (cache layer)
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY apps/api/package.json apps/api/
+COPY apps/web/package.json apps/web/
+
+RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
+    pnpm install --frozen-lockfile --filter @civora/api...
+
+# ─── Stage 2: build ──────────────────────────────────────────────────────────
+FROM deps AS builder
+
+ARG BUILD_SHA=dev
+ENV BUILD_SHA=${BUILD_SHA}
+
+COPY apps/api apps/api
+COPY packages packages 2>/dev/null || true
+
+# Generate Prisma client
+RUN pnpm --filter @civora/api exec prisma generate
+
+# Build NestJS
+RUN pnpm --filter @civora/api run build
+
+# ─── Stage 3: production runtime ─────────────────────────────────────────────
+FROM node:20-alpine AS runner
+
+RUN addgroup -g 1001 -S civora && adduser -u 1001 -S civora -G civora
+
+RUN corepack enable && corepack prepare pnpm@9 --activate
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV PORT=3001
+
+# Install only prod dependencies (no devDeps)
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY apps/api/package.json apps/api/
+
+RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
+    pnpm install --frozen-lockfile --filter @civora/api --prod
+
+# Copy Prisma schema + generated client
+COPY --from=builder /app/apps/api/prisma apps/api/prisma
+COPY --from=builder /app/apps/api/node_modules/.prisma apps/api/node_modules/.prisma
+COPY --from=builder /app/node_modules/.prisma node_modules/.prisma 2>/dev/null || true
+
+# Copy compiled output
+COPY --from=builder /app/apps/api/dist apps/api/dist
+
+USER civora
+
+EXPOSE 3001
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+  CMD wget -qO- http://localhost:3001/health || exit 1
+
+CMD ["node", "apps/api/dist/main.js"]
