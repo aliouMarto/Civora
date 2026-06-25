@@ -1,0 +1,82 @@
+{
+  "app": {
+    "name": "CIVORA"
+  },
+  "nav": {
+    "dashboard": "Tableau de bord",
+    "pilotage": "Pilotage",
+    "crm": "CRM",
+    "immobilier": "Immobilier",
+    "gestion": "Gestion",
+    "operations": "Opérations",
+    "systeme": "Système",
+    "contacts": "Contacts",
+    "leads": "Leads",
+    "biens": "Biens",
+    "baux": "Baux",
+    "paiements": "Paiements",
+    "factures": "Factures",
+    "maintenances": "Maintenances",
+    "documents": "Documents",
+    "rapports": "Rapports",
+    "utilisateurs": "Utilisateurs",
+    "parametres": "Paramètres",
+    "profil": "Mon profil",
+    "deconnexion": "Déconnexion",
+    "ai": "Ouvrir CIVORA AI"
+  },
+  "auth": {
+    "login": {
+      "title": "Connexion",
+      "subtitle": "Connectez-vous à votre espace agence",
+      "email": "Adresse e-mail",
+      "password": "Mot de passe",
+      "submit": "Se connecter",
+      "submitting": "Connexion en cours…",
+      "error_invalid": "Email ou mot de passe incorrect.",
+      "error_server": "Erreur serveur. Veuillez réessayer."
+    }
+  },
+  "dashboard": {
+    "title": "Command Center",
+    "subtitle": "Vue d'ensemble de votre agence",
+    "ai_insights": "Insights IA",
+    "ai_insights_desc": "Sera alimenté en R1 — recommandations IA personnalisées",
+    "kpi_revenus": "Revenus du mois",
+    "kpi_biens": "Biens actifs",
+    "kpi_taux_occupation": "Taux d'occupation",
+    "kpi_impayes": "Impayés en cours",
+    "kpi_contacts": "Contacts actifs",
+    "kpi_baux": "Baux actifs",
+    "graph_revenus": "Graphe revenus",
+    "graph_revenus_desc": "Sera alimenté en R1 — évolution mensuelle des revenus",
+    "donut_parc": "Répartition du parc",
+    "donut_parc_desc": "Sera alimenté en R1 — statut des biens (occupé/vacant/maintenance)",
+    "cashflow": "Cash Flow 7 jours",
+    "cashflow_desc": "Sera alimenté en R1 — entrées/sorties des 7 derniers jours",
+    "pipeline": "Pipeline commercial",
+    "pipeline_desc": "Sera alimenté en R2 — leads en cours de qualification",
+    "activite_live": "Activité live",
+    "activite_live_desc": "Sera alimenté en R1 — événements temps réel",
+    "impayes_top": "Top impayés",
+    "impayes_top_desc": "Sera alimenté en R2 — locataires avec retards",
+    "saisonnier": "Prévisions saisonnières",
+    "saisonnier_desc": "Sera alimenté en R3 — pricing dynamique",
+    "top_agents": "Top agents",
+    "top_agents_desc": "Sera alimenté en R2 — classement par performance"
+  },
+  "profile": {
+    "title": "Mon profil",
+    "subtitle": "Gérez vos informations personnelles"
+  },
+  "common": {
+    "loading": "Chargement…",
+    "error": "Une erreur est survenue",
+    "placeholder_coming_soon": "Cette section sera disponible en"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "Aucune notification",
+    "mark_read": "Marquer comme lu"
+  }
+}

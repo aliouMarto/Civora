@@ -1,0 +1,82 @@
+{
+  "app": {
+    "name": "CIVORA"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "pilotage": "Piloting",
+    "crm": "CRM",
+    "immobilier": "Real Estate",
+    "gestion": "Management",
+    "operations": "Operations",
+    "systeme": "System",
+    "contacts": "Contacts",
+    "leads": "Leads",
+    "biens": "Properties",
+    "baux": "Leases",
+    "paiements": "Payments",
+    "factures": "Invoices",
+    "maintenances": "Maintenance",
+    "documents": "Documents",
+    "rapports": "Reports",
+    "utilisateurs": "Users",
+    "parametres": "Settings",
+    "profil": "My profile",
+    "deconnexion": "Sign out",
+    "ai": "Open CIVORA AI"
+  },
+  "auth": {
+    "login": {
+      "title": "Sign in",
+      "subtitle": "Sign in to your agency workspace",
+      "email": "Email address",
+      "password": "Password",
+      "submit": "Sign in",
+      "submitting": "Signing in…",
+      "error_invalid": "Invalid email or password.",
+      "error_server": "Server error. Please try again."
+    }
+  },
+  "dashboard": {
+    "title": "Command Center",
+    "subtitle": "Your agency overview",
+    "ai_insights": "AI Insights",
+    "ai_insights_desc": "Coming in R1 — personalized AI recommendations",
+    "kpi_revenus": "Monthly revenue",
+    "kpi_biens": "Active properties",
+    "kpi_taux_occupation": "Occupancy rate",
+    "kpi_impayes": "Outstanding arrears",
+    "kpi_contacts": "Active contacts",
+    "kpi_baux": "Active leases",
+    "graph_revenus": "Revenue graph",
+    "graph_revenus_desc": "Coming in R1 — monthly revenue trends",
+    "donut_parc": "Portfolio breakdown",
+    "donut_parc_desc": "Coming in R1 — property status (occupied/vacant/maintenance)",
+    "cashflow": "7-day cash flow",
+    "cashflow_desc": "Coming in R1 — inflows/outflows for the last 7 days",
+    "pipeline": "Sales pipeline",
+    "pipeline_desc": "Coming in R2 — leads in qualification",
+    "activite_live": "Live activity",
+    "activite_live_desc": "Coming in R1 — real-time events",
+    "impayes_top": "Top arrears",
+    "impayes_top_desc": "Coming in R2 — tenants with overdue payments",
+    "saisonnier": "Seasonal forecasts",
+    "saisonnier_desc": "Coming in R3 — dynamic pricing",
+    "top_agents": "Top agents",
+    "top_agents_desc": "Coming in R2 — performance ranking"
+  },
+  "profile": {
+    "title": "My profile",
+    "subtitle": "Manage your personal information"
+  },
+  "common": {
+    "loading": "Loading…",
+    "error": "An error occurred",
+    "placeholder_coming_soon": "This section will be available in"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "No notifications",
+    "mark_read": "Mark as read"
+  }
+}
