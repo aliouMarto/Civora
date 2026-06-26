@@ -10,8 +10,18 @@ import { ContactsDedupService } from './contacts-dedup.service';
 import { InteractionsService } from './interactions.service';
 import { SegmentsService } from './segments.service';
 
+import { ContactScoringModule } from './scoring/scoring.module';
+import { AskKuraModule } from './ask-kura/ask-kura.module';
+import { ContactsIndexerModule } from './indexing/contacts-indexer.module';
+
 @Module({
-  imports: [AuditModule, EventsModule],
+  imports: [
+    AuditModule,
+    EventsModule,
+    ContactScoringModule,
+    AskKuraModule,
+    ContactsIndexerModule,
+  ],
   controllers: [ContactsController],
   providers: [
     ContactsService,
@@ -26,6 +36,9 @@ import { SegmentsService } from './segments.service';
     ContactsDedupService,
     InteractionsService,
     SegmentsService,
+    ContactScoringModule,
+    AskKuraModule,
+    ContactsIndexerModule,
   ],
 })
 export class ContactsModule {}

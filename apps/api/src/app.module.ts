@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -30,6 +31,7 @@ import { RedisModule } from './infrastructure/redis/redis.module';
       isGlobal: true,
       validate: (config: Record<string, unknown>) => envSchema.parse(config),
     }),
+    ScheduleModule.forRoot(),
     TenancyModule,
     PrismaModule,
     RedisModule,

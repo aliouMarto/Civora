@@ -23,6 +23,8 @@ export const envSchema = z.object({
   AI_PROVIDER_MODE: z.enum(['auto', 'fake', 'openai', 'gemini']).default('fake'),
   OPENAI_API_KEY: z.string().optional(),
   GEMINI_API_KEY: z.string().optional(),
+  /** URL du service IA prédictif Python (FastAPI). Si absent, fallback heuristique TS. */
+  AI_SERVICE_URL: z.string().url().optional(),
   // ── SMTP (email) ─────────────────────────────────────────────────────────
   SMTP_HOST: z.string().default('localhost'),
   SMTP_PORT: z.coerce.number().int().positive().default(1025),
