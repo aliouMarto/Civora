@@ -32,6 +32,7 @@ model Agence {
   contacts     Contact[]
   segments     Segment[]
   interactions Interaction[]
+  biens        Bien[]
 
   @@map("agences")
 }
@@ -517,4 +518,161 @@ model ExportJob {
   @@index([agence_id, module, status])
   @@index([expires_at])                                 // job de purge
   @@map("export_jobs")
+}
+
+// ─────────────────────────────────────────────
+// BIENS — Catalogue unique du parc immobilier
+// ─────────────────────────────────────────────
+// Lot 1 · Module 2 · Étape 1
+//
+// - PostGIS : la colonne `geo geometry(Point, 4326)` est ajoutée par
+//   migration SQL brute (Prisma ne supporte pas geometry nativement),
+//   accédée par raw SQL dans le repository.
+// - Tous les montants en BigInt (centimes FCFA) — règle absolue.
+// - Pas de FK vers Contact (modules séparés). L'intégrité du propriétaire
+//   est vérifiée côté service.
+// - Le `statut` est éditable manuellement à ce stade. R2 (Locations) et
+//   R4 (Saisonnier) le rendront dérivé via events bail.signe/reservation.*.
+
+enum BienStatut {
+  disponible
+  loue
+  saisonnier
+  hors_circuit                  // en travaux, retiré du marché
+}
+
+enum BienType {
+  villa
+  appartement
+  studio
+  bureau
+  local_commercial
+  terrain
+  immeuble
+  autre
+}
+
+enum BienUsage {
+  vente
+  location_longue_duree
+  saisonnier
+  mixte                          // vente OU location selon opportunités
+}
+
+model Bien {
+  id                    String     @id @default(uuid()) @db.Uuid
+  agence_id             String     @db.Uuid
+  entite_id             String?    @db.Uuid
+
+  // Identification
+  reference             String                                  // ex: "BIE-2025-0001"
+  nom                   String                                  // libellé court
+  description           String?
+
+  // Classification
+  type                  BienType
+  usage                 BienUsage  @default(location_longue_duree)
+  statut                BienStatut @default(disponible)
+
+  // Caractéristiques physiques
+  surface               Decimal?   @db.Decimal(8, 2)            // m² (non monétaire, OK en Decimal)
+  pieces                Int?
+  chambres              Int?
+  salles_bain           Int?
+  etage                 Int?
+  annee_construction    Int?
+  amenities             String[]   @default([])                 // 'piscine','climatisation','jardin','parking','meuble'
+
+  // Localisation
+  adresse_ligne1        String
+  adresse_ligne2        String?
+  ville                 String
+  commune               String?                                  // Cocody, Plateau, Marcory...
+  pays                  String     @default("CI")
+  // Coordonnées WGS84 : colonne `geo geometry(Point, 4326)` ajoutée par migration.sql
+  // Latitude/longitude dénormalisées pour requêtes simples (la source de vérité reste `geo`)
+  latitude              Decimal?   @db.Decimal(10, 7)
+  longitude             Decimal?   @db.Decimal(10, 7)
+
+  // Pricing (centimes FCFA — BigInt obligatoire pour l'argent)
+  prix_vente_xof        BigInt?
+  loyer_mensuel_xof     BigInt?
+  charges_xof           BigInt?
+  caution_xof           BigInt?
+  // Note : prix saisonnier (par nuit) géré dans module Saisonnier R4
+
+  // Rentabilité — calculée par le worker, jamais saisie manuellement
+  yield_brut_pct        Decimal?   @db.Decimal(5, 2)            // rendement brut annuel en %
+  yield_updated_at      DateTime?
+
+  // Propriétaire : référence vers Contact (module séparé, intégrité côté service)
+  proprietaire_id       String?    @db.Uuid
+
+  // Statut d'occupation : pour l'instant manuel, deviendra dérivé en R2/R4
+  statut_source         String     @default("manuel")           // 'manuel' | 'bail' | 'reservation'
+
+  // Score IA portefeuille (worker dédié en étape 3)
+  score_ia              Int?                                     // 0-100
+  score_occupation      String?                                  // 'A+','A','B','C'
+  score_rentabilite     String?
+  score_diversification String?
+  score_risque_impaye   String?
+  score_updated_at      DateTime?
+
+  // Métadonnées
+  agent_responsable_id  String?    @db.Uuid
+  tags                  String[]   @default([])
+  created_at            DateTime   @default(now())
+  updated_at            DateTime   @updatedAt
+  created_by            String?    @db.Uuid
+
+  // Soft delete (cohérent avec Contact)
+  archived_at           DateTime?
+
+  agence                Agence           @relation(fields: [agence_id], references: [id], onDelete: Restrict)
+  photos                BienPhoto[]
+  historique            BienHistorique[]
+
+  @@unique([agence_id, reference])
+  @@index([agence_id])
+  @@index([agence_id, statut])
+  @@index([agence_id, ville, commune])
+  @@index([agence_id, type, usage])
+  @@index([agence_id, proprietaire_id])
+  @@index([agence_id, score_ia])
+  @@map("biens")
+}
+
+model BienPhoto {
+  id          String   @id @default(uuid()) @db.Uuid
+  agence_id   String   @db.Uuid
+  bien_id     String   @db.Uuid
+  storage_key String                                            // clé R2 (jamais URL publique)
+  caption     String?
+  ordre       Int      @default(0)
+  created_at  DateTime @default(now())
+
+  bien        Bien     @relation(fields: [bien_id], references: [id], onDelete: Cascade)
+
+  @@index([agence_id, bien_id, ordre])
+  @@map("bien_photos")
+}
+
+model BienHistorique {
+  id           String    @id @default(uuid()) @db.Uuid
+  agence_id    String    @db.Uuid
+  bien_id      String    @db.Uuid
+  type         String                                           // 'bail','reservation','vente','travaux','changement_proprietaire'
+  reference_id String?   @db.Uuid                               // ID du bail/réservation/vente lié (modules séparés)
+  debut        DateTime?
+  fin          DateTime?
+  montant_xof  BigInt?
+  notes        String?
+  created_at   DateTime  @default(now())
+
+  bien         Bien      @relation(fields: [bien_id], references: [id], onDelete: Cascade)
+
+  @@index([agence_id, bien_id, type])
+  @@index([agence_id, bien_id, debut])
+  @@map("bien_historique")
 }
