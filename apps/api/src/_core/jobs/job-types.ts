@@ -84,6 +84,31 @@ export interface ScheduledTaskPayload extends BaseJobPayload {
 
 export type ScheduledJobPayload = ScheduledTaskPayload;
 
+// ── imports ──────────────────────────────────────────────────────────────────
+export interface ImportContactsPayload extends BaseJobPayload {
+  import_job_id: string;
+  module: 'contacts';
+  fichier_key: string;
+  mapping: Record<string, string>;
+  options: {
+    skip_duplicates?: boolean;
+    update_duplicates?: boolean;
+    default_source?: string;
+    default_roles?: string[];
+  };
+}
+export type ImportsJobPayload = ImportContactsPayload;
+
+// ── exports ──────────────────────────────────────────────────────────────────
+export interface ExportContactsPayload extends BaseJobPayload {
+  export_job_id: string;
+  module: 'contacts';
+  format: 'csv' | 'xlsx';
+  filtres: Record<string, unknown>;
+  columns?: string[];
+}
+export type ExportsJobPayload = ExportContactsPayload;
+
 // ── demo (dev uniquement) ─────────────────────────────────────────────────────
 export interface DemoPingPayload extends BaseJobPayload {
   message?: string;

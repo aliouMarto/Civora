@@ -13,6 +13,7 @@ import { SegmentsService } from './segments.service';
 import { ContactScoringModule } from './scoring/scoring.module';
 import { AskKuraModule } from './ask-kura/ask-kura.module';
 import { ContactsIndexerModule } from './indexing/contacts-indexer.module';
+import { ContactsImportExportModule } from './import-export/import-export.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { ContactsIndexerModule } from './indexing/contacts-indexer.module';
     ContactScoringModule,
     AskKuraModule,
     ContactsIndexerModule,
+    ContactsImportExportModule,
   ],
   controllers: [ContactsController],
   providers: [
@@ -39,6 +41,7 @@ import { ContactsIndexerModule } from './indexing/contacts-indexer.module';
     ContactScoringModule,
     AskKuraModule,
     ContactsIndexerModule,
+    ContactsImportExportModule,
   ],
 })
 export class ContactsModule {}

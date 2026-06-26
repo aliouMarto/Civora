@@ -187,6 +187,42 @@
     "errors": {
       "not_found_title": "Contact introuvable",
       "not_found_body": "Ce contact n'existe pas ou n'appartient pas à votre agence."
+    },
+    "import": {
+      "title": "Importer des contacts",
+      "subtitle": "CSV ou XLSX, 50 Mo max. Le mapping est suggéré automatiquement et reste modifiable.",
+      "step_upload": "1. Fichier",
+      "step_mapping": "2. Mapping",
+      "step_preview": "3. Aperçu",
+      "step_execute": "4. Exécution",
+      "step_report": "5. Rapport",
+      "drop_here": "Glissez un fichier ici ou cliquez pour parcourir",
+      "max_size": "CSV ou XLSX · 50 Mo max · UTF-8 recommandé",
+      "uploading": "Téléversement en cours…",
+      "mapping_intro": "Associez chaque colonne de votre fichier à un champ Civora.",
+      "auto_suggestion": "Suggestion auto",
+      "preview_title": "Aperçu (5 premières lignes)",
+      "skip_duplicates": "Ignorer les doublons (skip)",
+      "update_duplicates": "Mettre à jour les doublons",
+      "launch": "Lancer l'import",
+      "progress": "Import en cours…",
+      "done": "Import terminé",
+      "failed": "Import échoué",
+      "imported": "Importés",
+      "skipped": "Ignorés",
+      "errors_count": "Erreurs",
+      "download_errors": "Télécharger les erreurs",
+      "see_contacts": "Voir les contacts"
+    },
+    "export": {
+      "title": "Exporter les contacts",
+      "format": "Format de fichier",
+      "csv": "CSV (universel)",
+      "xlsx": "Excel (.xlsx)",
+      "selection_count": "Exporter {count} contact(s) sélectionné(s).",
+      "filters_apply": "Exporter la liste avec les filtres actuels.",
+      "large_volume": "Au-delà de 1000 contacts, l'export est traité en arrière-plan.",
+      "submit": "Exporter"
     }
   }
 }

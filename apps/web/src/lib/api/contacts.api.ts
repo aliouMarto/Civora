@@ -349,6 +349,96 @@ export function useDeleteSegment(): UseMutationResult<void, Error, string> {
   });
 }
 
+// ─── Import / Export ───────────────────────────────────────────────────────
+
+export interface ImportUploadResponse {
+  upload_url: string;
+  file_key: string;
+  expires_at: string;
+}
+
+export interface ImportPreviewResponse {
+  headers: string[];
+  suggested_mapping: Record<string, string>;
+  preview_rows: Array<{ row: number; data: Record<string, unknown>; errors: string[] }>;
+  total_rows_estimated: number;
+}
+
+export interface ImportJobStatus {
+  id: string;
+  status: 'queued' | 'running' | 'completed' | 'failed';
+  total_rows: number;
+  processed: number;
+  imported: number;
+  skipped: number;
+  errors: number;
+  errors_file_key: string | null;
+  started_at: string | null;
+  finished_at: string | null;
+}
+
+export function useCreateImportUpload(): UseMutationResult<
+  ImportUploadResponse,
+  Error,
+  { ext: string; contentType: string; sizeBytes?: number }
+> {
+  return useMutation({
+    mutationFn: (input) =>
+      apiFetch<ImportUploadResponse>('/contacts/import/upload', {
+        method: 'POST',
+        body: JSON.stringify(input),
+      }),
+  });
+}
+
+export function useImportPreview(): UseMutationResult<
+  ImportPreviewResponse,
+  Error,
+  { file_key: string; mapping?: Record<string, string>; options?: Record<string, unknown> }
+> {
+  return useMutation({
+    mutationFn: (input) =>
+      apiFetch<ImportPreviewResponse>('/contacts/import/preview', {
+        method: 'POST',
+        body: JSON.stringify(input),
+      }),
+  });
+}
+
+export function useImportExecute(): UseMutationResult<
+  { import_job_id: string },
+  Error,
+  { file_key: string; mapping: Record<string, string>; options?: Record<string, unknown> }
+> {
+  return useMutation({
+    mutationFn: (input) =>
+      apiFetch<{ import_job_id: string }>('/contacts/import/execute', {
+        method: 'POST',
+        body: JSON.stringify(input),
+      }),
+  });
+}
+
+export function useImportStatus(id: string | null): UseQueryResult<ImportJobStatus> {
+  return useQuery({
+    queryKey: ['contacts', 'import', id ?? '__none__'],
+    queryFn: () => apiFetch<ImportJobStatus>(`/contacts/import/${id}`),
+    enabled: Boolean(id),
+    refetchInterval: (q) => {
+      const d = q.state.data;
+      if (!d) return 2_000;
+      return d.status === 'queued' || d.status === 'running' ? 2_000 : false;
+    },
+  });
+}
+
+export function useImportErrorsUrl(): UseMutationResult<{ url: string; expires_at: string }, Error, string> {
+  return useMutation({
+    mutationFn: (id) =>
+      apiFetch<{ url: string; expires_at: string }>(`/contacts/import/${id}/errors`),
+  });
+}
+
 // ─── Ask KURA ──────────────────────────────────────────────────────────────
 
 export function useAskKura(): UseMutationResult<AskKuraResponse, Error, { question: string; max_results?: number }> {

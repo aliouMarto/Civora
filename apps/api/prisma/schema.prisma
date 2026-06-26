@@ -466,3 +466,55 @@ model Interaction {
   @@index([agence_id, type, occurred_at])
   @@map("interactions")
 }
+
+// ─────────────────────────────────────────────
+// IMPORT / EXPORT — pipelines réutilisables
+// ─────────────────────────────────────────────
+// Le champ `module` permet de réutiliser ces deux tables pour les futurs
+// modules métier (biens, baux, ged...) sans dupliquer la structure.
+
+model ImportJob {
+  id              String    @id @default(uuid()) @db.Uuid
+  agence_id       String    @db.Uuid
+  module          String                                // 'contacts' | 'biens' | ...
+  fichier_key     String                                // clé R2 du fichier source
+  mapping         Json                                   // colonnes source → champ DTO
+  options         Json                                   // { skip_duplicates, default_source, ... }
+  total_rows      Int       @default(0)
+  processed       Int       @default(0)
+  imported        Int       @default(0)
+  skipped         Int       @default(0)
+  errors          Int       @default(0)
+  errors_file_key String?                                // clé R2 du CSV des erreurs
+  status          String    @default("queued")          // 'queued' | 'running' | 'completed' | 'failed'
+  error_message   String?                                // message global si status=failed
+  started_at      DateTime?
+  finished_at     DateTime?
+  created_by      String    @db.Uuid
+  created_at      DateTime  @default(now())
+
+  @@index([agence_id, module, status])
+  @@index([agence_id, created_at])
+  @@map("import_jobs")
+}
+
+model ExportJob {
+  id           String    @id @default(uuid()) @db.Uuid
+  agence_id    String    @db.Uuid
+  module       String
+  format       String                                   // 'csv' | 'xlsx'
+  filtres      Json
+  columns      Json?                                    // liste des colonnes (null = défaut)
+  total_rows   Int?
+  fichier_key  String?
+  status       String    @default("queued")             // 'queued' | 'running' | 'completed' | 'failed'
+  error_message String?
+  created_by   String    @db.Uuid
+  created_at   DateTime  @default(now())
+  finished_at  DateTime?
+  expires_at   DateTime                                 // purge auto après 24h
+
+  @@index([agence_id, module, status])
+  @@index([expires_at])                                 // job de purge
+  @@map("export_jobs")
+}

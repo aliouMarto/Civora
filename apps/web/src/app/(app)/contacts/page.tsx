@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { Plus, Sparkles } from 'lucide-react';
+import { Plus, Sparkles, Upload, Download } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/lib/store/auth.store';
@@ -14,6 +14,7 @@ import { ContactsFilters } from './_components/contacts-filters';
 import { ContactsTable } from './_components/contacts-table';
 import { ContactsStats } from './_components/contacts-stats';
 import { AskKuraContacts } from './_components/ask-kura-contacts';
+import { ExportDialog } from './_components/export-dialog';
 
 interface ScoreChangedEvent {
   contact_id: string;
@@ -31,6 +32,11 @@ export default function ContactsPage(): React.ReactElement {
 
   const [selected, setSelected] = React.useState<Set<string>>(new Set());
   const [askOpen, setAskOpen] = React.useState(false);
+  const [exportOpen, setExportOpen] = React.useState(false);
+
+  const permissions = useAuthStore((s) => s.user?.permissions ?? []);
+  const canExport = permissions.includes('*:*') || permissions.includes('contacts:export');
+  const canWrite = permissions.includes('*:*') || permissions.includes('contacts:write');
 
   // Realtime : highlight transient quand un score change
   const accessToken = useAuthStore((s) => s.accessToken);
@@ -85,6 +91,20 @@ export default function ContactsPage(): React.ReactElement {
             <Sparkles size={14} className="mr-1.5" />
             Demander à KURA
           </Button>
+          {canWrite ? (
+            <Button asChild variant="secondary">
+              <Link href="/contacts/import">
+                <Upload size={14} className="mr-1.5" />
+                Importer
+              </Link>
+            </Button>
+          ) : null}
+          {canExport ? (
+            <Button variant="secondary" onClick={() => setExportOpen(true)}>
+              <Download size={14} className="mr-1.5" />
+              Exporter
+            </Button>
+          ) : null}
           <Button asChild>
             <Link href="/contacts/new">
               <Plus size={14} className="mr-1.5" />
@@ -107,9 +127,11 @@ export default function ContactsPage(): React.ReactElement {
             <Button size="sm" variant="secondary" onClick={() => setSelected(new Set())}>
               Tout désélectionner
             </Button>
-            <Button size="sm" variant="secondary" disabled title="Disponible à l'étape .5">
-              Exporter CSV
-            </Button>
+            {canExport ? (
+              <Button size="sm" variant="secondary" onClick={() => setExportOpen(true)}>
+                Exporter la sélection
+              </Button>
+            ) : null}
           </div>
         </div>
       ) : null}
@@ -127,6 +149,13 @@ export default function ContactsPage(): React.ReactElement {
       />
 
       <AskKuraContacts open={askOpen} onClose={() => setAskOpen(false)} />
+
+      <ExportDialog
+        open={exportOpen}
+        onClose={() => setExportOpen(false)}
+        filtres={filters}
+        selectedIds={selected.size > 0 ? [...selected] : undefined}
+      />
     </div>
   );
 }

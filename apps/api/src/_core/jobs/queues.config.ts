@@ -8,6 +8,8 @@ export const QUEUE_NAMES = [
   'payments',
   'ota',
   'reports',
+  'imports',
+  'exports',
   'scheduled',
 ] as const;
 
@@ -27,6 +29,10 @@ export const QUEUES: Record<QueueName, QueueConfig> = {
   payments:  { concurrency: 2,  attempts: 10, backoff: { type: 'exponential', delay: 15_000 } },
   ota:       { concurrency: 4,  attempts: 5,  backoff: { type: 'exponential', delay: 10_000 } },
   reports:   { concurrency: 2,  attempts: 2,  backoff: { type: 'exponential', delay: 30_000 } },
+  // imports/exports : 1 seul retry — un import qui échoue doit etre re-déclenché
+  // manuellement (l'agence doit relire le rapport d'erreurs).
+  imports:   { concurrency: 2,  attempts: 1,  backoff: { type: 'exponential', delay: 30_000 } },
+  exports:   { concurrency: 2,  attempts: 1,  backoff: { type: 'exponential', delay: 30_000 } },
   scheduled: { concurrency: 2,  attempts: 3,  backoff: { type: 'exponential', delay: 60_000 } },
 } as const;
 
