@@ -50,7 +50,12 @@ export class WorkflowsController {
     @Body() body: { statut: 'actif' | 'inactif' },
     @CurrentUser() user: JwtPayload,
   ) {
-    const before = await this.prisma.workflow.findUniqueOrThrow({ where: { id } });
+    const agence_id = this.tenantCtx.requireAgenceId();
+    // findFirstOrThrow + agence_id explicite : défense en profondeur en plus
+    // de la RLS, évite tout IDOR si la session DB est mal isolée.
+    const before = await this.prisma.workflow.findFirstOrThrow({
+      where: { id, agence_id },
+    });
     const result = await this.registry.toggleStatut(id, body.statut);
     await this.audit.log({
       action: 'workflows:toggle',

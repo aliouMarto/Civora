@@ -2,9 +2,13 @@ import { z } from 'zod';
 
 export const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+  // Rôle propriétaire des tables — UNIQUEMENT pour les migrations Prisma.
+  // L'API applicative ne doit JAMAIS s'en servir : il contourne la RLS.
   DATABASE_URL: z.string().url({ message: 'DATABASE_URL must be a valid PostgreSQL URL' }),
-  DATABASE_APP_URL: z.string().url().optional(),
-  DATABASE_ADMIN_URL: z.string().url().optional(),
+  // Rôle applicatif (civora_app) — soumis à la RLS. Utilisé par PrismaService.
+  DATABASE_APP_URL: z.string().url({ message: 'DATABASE_APP_URL must be a valid PostgreSQL URL' }),
+  // Rôle admin (civora_admin) avec BYPASSRLS — workers système uniquement.
+  DATABASE_ADMIN_URL: z.string().url({ message: 'DATABASE_ADMIN_URL must be a valid PostgreSQL URL' }),
   REDIS_URL: z.string().url({ message: 'REDIS_URL must be a valid Redis URL' }),
   GOTENBERG_URL: z.string().url({ message: 'GOTENBERG_URL must be a valid URL' }),
   JWT_ACCESS_SECRET: z.string().min(32, 'JWT_ACCESS_SECRET must be at least 32 chars'),

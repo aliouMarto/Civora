@@ -126,7 +126,9 @@ cron 02:00 UTC → backup.yml                                                   
 
 | Secret | Environnement | Description |
 |---|---|---|
-| `DATABASE_URL` | production, staging | Connection string PostgreSQL |
+| `DATABASE_URL` | production, staging | Connection string PostgreSQL — propriétaire des tables, **migrations uniquement** |
+| `DATABASE_APP_URL` | production, staging | Connection string `civora_app` — utilisé par l'API (RLS enforced) |
+| `DATABASE_ADMIN_URL` | production, staging | Connection string `civora_admin` BYPASSRLS — workers système, pré-auth |
 | `REDIS_URL` | staging | Connection string Redis |
 | `JWT_ACCESS_SECRET` | staging | Minimum 32 chars |
 | `JWT_REFRESH_SECRET` | staging | Minimum 32 chars |

@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { Queue } from 'bullmq';
 
 import type { Env } from '../../infrastructure/config/env.schema';
-import { PrismaService } from '../../infrastructure/prisma/prisma.service';
+import { PrismaAdminService } from '../../infrastructure/prisma/prisma-admin.service';
 import type { DomainEvent } from './domain-event';
 
 const QUEUE_PREFIX = 'events';
@@ -13,6 +13,12 @@ const BATCH_SIZE = 50;
  * Worker Outbox : poll domain_events WHERE published_at IS NULL,
  * publie sur BullMQ queue "events.<type>", marque published_at.
  * En cas d'échec : incrémente attempts, log last_error, backoff exponentiel.
+ *
+ * BYPASSRLS justifié : le dispatcher doit lire les événements non publiés
+ * de TOUTES les agences. C'est l'un des rares contextes (avec les migrations
+ * et les jobs de maintenance) où la traversée des frontières de tenant est
+ * légitime. On utilise donc PrismaAdminService (civora_admin) et non
+ * PrismaService (civora_app, soumis à la RLS).
  */
 @Injectable()
 export class OutboxDispatcherService implements OnModuleInit, OnModuleDestroy {
@@ -22,7 +28,7 @@ export class OutboxDispatcherService implements OnModuleInit, OnModuleDestroy {
   private readonly queues = new Map<string, Queue>();
 
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly prisma: PrismaAdminService,
     private readonly config: ConfigService<Env, true>,
   ) {
     this.intervalMs = this.config.get('OUTBOX_POLL_INTERVAL_MS', { infer: true }) ?? 200;

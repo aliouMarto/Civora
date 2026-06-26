@@ -88,7 +88,13 @@ jobs:
             IMAGE_TAG=${{ steps.tag.outputs.tag }}
             REGISTRY=${{ env.REGISTRY }}
             IMAGE_PREFIX=${{ env.IMAGE_PREFIX }}
+            # Trois URLs distinctes pour la séparation des rôles PostgreSQL :
+            #   - DATABASE_URL       : propriétaire des tables (migrations uniquement)
+            #   - DATABASE_APP_URL   : civora_app (API, RLS enforced)
+            #   - DATABASE_ADMIN_URL : civora_admin BYPASSRLS (workers système)
             DATABASE_URL=${{ secrets.DATABASE_URL }}
+            DATABASE_APP_URL=${{ secrets.DATABASE_APP_URL }}
+            DATABASE_ADMIN_URL=${{ secrets.DATABASE_ADMIN_URL }}
             REDIS_URL=${{ secrets.REDIS_URL }}
             JWT_ACCESS_SECRET=${{ secrets.JWT_ACCESS_SECRET }}
             JWT_REFRESH_SECRET=${{ secrets.JWT_REFRESH_SECRET }}

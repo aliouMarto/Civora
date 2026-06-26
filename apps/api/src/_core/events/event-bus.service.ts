@@ -38,11 +38,18 @@ export class EventBusService {
   /**
    * Ouvre une transaction dédiée pour émettre un événement seul.
    * Utile uniquement si aucune transaction métier n'est en cours.
+   *
+   * Positionne `app.agence_id` quand l'événement est rattaché à une agence,
+   * pour respecter la politique RLS sur domain_events. Les événements
+   * système (agence_id null) sont autorisés sans contexte tenant par la
+   * politique elle-même.
    */
   async emitInTx<TPayload>(event: DomainEvent<TPayload>): Promise<void> {
-    await this.prisma.$transaction(async (tx) => {
-      await this.outbox.emit(event, tx);
-    });
+    if (event.agence_id) {
+      await this.prisma.withTenant(event.agence_id, (tx) => this.outbox.emit(event, tx));
+    } else {
+      await this.prisma.$transaction((tx) => this.outbox.emit(event, tx));
+    }
     this.logger.debug(`emitInTx: ${event.type} [${event.id}]`);
   }
 }

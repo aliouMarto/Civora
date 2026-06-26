@@ -8,6 +8,7 @@ import {
   Logger,
 } from '@nestjs/common';
 
+import { PrismaAdminService } from '../../infrastructure/prisma/prisma-admin.service';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { AuthService } from '../auth/auth.service';
 import type { JwtPayload } from '../auth/decorators/current-user.decorator';
@@ -19,6 +20,10 @@ export class UsersService {
 
   constructor(
     private readonly prisma: PrismaService,
+    // BYPASSRLS justifié : la résolution de l'invitation (pré-auth) précède
+    // toute notion de contexte tenant. Le token de l'invitation joue le rôle
+    // d'authentification d'usage unique.
+    private readonly prismaAdmin: PrismaAdminService,
     private readonly auth: AuthService,
   ) {}
 
@@ -77,7 +82,9 @@ export class UsersService {
     dto: Pick<CreateUserDto, 'password' | 'nom' | 'prenom'>,
   ): Promise<{ message: string }> {
     const token_hash = createHash('sha256').update(token).digest('hex');
-    const invitation = await this.prisma.invitation.findFirst({
+    // Lookup pré-auth via prismaAdmin (BYPASSRLS) : le token est l'identifiant
+    // implicite de l'agence, on ne peut pas encore positionner le contexte tenant.
+    const invitation = await this.prismaAdmin.invitation.findFirst({
       where: { token_hash, utilisee_at: null },
     });
 
@@ -87,7 +94,7 @@ export class UsersService {
 
     const password_hash = await this.auth.hashPassword(dto.password);
 
-    await this.prisma.$transaction(async (tx) => {
+    await this.prisma.withTenant(invitation.agence_id, async (tx) => {
       const utilisateur = await tx.utilisateur.create({
         data: {
           agence_id: invitation.agence_id,

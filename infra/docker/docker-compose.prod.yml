@@ -2,7 +2,13 @@ name: civora-prod
 
 x-common-env: &common-env
   NODE_ENV: production
+  # Trois URLs PostgreSQL distinctes pour la séparation des rôles :
+  #   - DATABASE_URL       : propriétaire des tables, migrations Prisma uniquement
+  #   - DATABASE_APP_URL   : civora_app (API, RLS enforced) — OBLIGATOIRE
+  #   - DATABASE_ADMIN_URL : civora_admin BYPASSRLS (workers système, pré-auth)
   DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
+  DATABASE_APP_URL: ${DATABASE_APP_URL:?DATABASE_APP_URL is required}
+  DATABASE_ADMIN_URL: ${DATABASE_ADMIN_URL:?DATABASE_ADMIN_URL is required}
   REDIS_URL: ${REDIS_URL:?REDIS_URL is required}
 
 services:

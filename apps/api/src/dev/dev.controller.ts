@@ -48,9 +48,8 @@ export class DevController {
       },
     });
 
-    await this.prisma.$transaction(async (tx) => {
-      await this.eventBus.emit(event, tx);
-    });
+    // emitInTx pose le contexte tenant requis par la RLS sur domain_events
+    await this.eventBus.emitInTx(event);
 
     return {
       event_id: event.id,

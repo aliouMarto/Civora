@@ -26,32 +26,39 @@ export class EmbeddingsService {
     const agence_id = this.tenantCtx.requireAgenceId();
     const { primary } = this.router.route('embed');
 
-    // Supprimer les anciens embeddings pour ce source (réindexation)
-    await this.prisma.$executeRawUnsafe(
-      `DELETE FROM ai_embeddings WHERE agence_id = $1 AND source_type = $2 AND source_id = $3`,
-      agence_id,
-      params.sourceType,
-      params.sourceId,
+    const chunks = chunkText(params.text);
+    const embedded = await Promise.all(
+      chunks.map(async (chunk) => {
+        const { vector, model } = await primary.embed(chunk.content);
+        return { chunk, vector, model };
+      }),
     );
 
-    const chunks = chunkText(params.text);
-
-    for (const chunk of chunks) {
-      const { vector, model } = await primary.embed(chunk.content);
-      const vectorStr = `[${vector.join(',')}]`;
-
-      await this.prisma.$executeRawUnsafe(
-        `INSERT INTO ai_embeddings (agence_id, source_type, source_id, chunk_index, content, embedding, model)
-         VALUES ($1, $2, $3, $4, $5, $6::vector, $7)`,
+    // withTenant pose app.agence_id pour les requêtes raw qui ne passent pas
+    // par l'auto-extension de PrismaService.
+    await this.prisma.withTenant(agence_id, async (tx) => {
+      await tx.$executeRawUnsafe(
+        `DELETE FROM ai_embeddings WHERE agence_id = $1 AND source_type = $2 AND source_id = $3`,
         agence_id,
         params.sourceType,
         params.sourceId,
-        chunk.index,
-        chunk.content,
-        vectorStr,
-        model,
       );
-    }
+
+      for (const { chunk, vector, model } of embedded) {
+        const vectorStr = `[${vector.join(',')}]`;
+        await tx.$executeRawUnsafe(
+          `INSERT INTO ai_embeddings (agence_id, source_type, source_id, chunk_index, content, embedding, model)
+           VALUES ($1, $2, $3, $4, $5, $6::vector, $7)`,
+          agence_id,
+          params.sourceType,
+          params.sourceId,
+          chunk.index,
+          chunk.content,
+          vectorStr,
+          model,
+        );
+      }
+    });
 
     this.logger.log(
       `embedded ${chunks.length} chunks for ${params.sourceType}/${params.sourceId} (agence=${agence_id})`,

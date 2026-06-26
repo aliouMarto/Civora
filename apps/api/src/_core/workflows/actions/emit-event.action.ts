@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
 import { EventBusService } from '../../events/event-bus.service';
 import { createDomainEvent } from '../../events/domain-event';
 import { TenantContextService } from '../../tenancy/tenant-context.service';
@@ -11,7 +10,6 @@ export class EmitEventAction {
   private readonly logger = new Logger(EmitEventAction.name);
 
   constructor(
-    private readonly prisma: PrismaService,
     private readonly eventBus: EventBusService,
     private readonly tenantCtx: TenantContextService,
   ) {}
@@ -47,9 +45,8 @@ export class EmitEventAction {
         },
       });
 
-      await this.prisma.$transaction(async (tx) => {
-        await this.eventBus.emit(event, tx);
-      });
+      // emitInTx pose le contexte tenant pour respecter la RLS sur domain_events
+      await this.eventBus.emitInTx(event);
 
       return { kind: 'emit-event', status: 'success', output: { event_id: event.id } };
     } catch (err) {

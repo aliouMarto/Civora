@@ -12,7 +12,7 @@ import * as argon2 from 'argon2';
 import { Request } from 'express';
 
 import type { Env } from '../../infrastructure/config/env.schema';
-import { PrismaService } from '../../infrastructure/prisma/prisma.service';
+import { PrismaAdminService } from '../../infrastructure/prisma/prisma-admin.service';
 import type { JwtPayload } from './decorators/current-user.decorator';
 import type { LoginDto } from './dto/login.dto';
 
@@ -32,7 +32,11 @@ export class AuthService {
   private readonly logger = new Logger(AuthService.name);
 
   constructor(
-    private readonly prisma: PrismaService,
+    // BYPASSRLS justifié : tout le flux d'authentification (lookup utilisateur
+    // par email, vérification du refresh token, rotation, mise à jour de
+    // derniere_connexion) précède l'établissement du contexte tenant. Le
+    // token (refresh) ou les credentials (login) jouent le rôle de proof.
+    private readonly prisma: PrismaAdminService,
     private readonly jwt: JwtService,
     private readonly config: ConfigService<Env, true>,
   ) {}

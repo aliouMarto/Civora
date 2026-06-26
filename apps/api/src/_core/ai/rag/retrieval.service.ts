@@ -45,17 +45,22 @@ export class RetrievalService {
       similarity: number;
     };
 
-    const rows = await this.prisma.$queryRawUnsafe<RawRow[]>(
-      `SELECT id, source_type, source_id, chunk_index, content,
-              1 - (embedding <=> $1::vector) AS similarity
-       FROM ai_embeddings
-       WHERE agence_id = $2
-         ${params.sourceType ? `AND source_type = $3` : ''}
-       ORDER BY embedding <=> $1::vector
-       LIMIT $${params.sourceType ? 4 : 3}`,
-      vectorStr,
-      agence_id,
-      ...(params.sourceType ? [params.sourceType, topK] : [topK]),
+    // withTenant pose app.agence_id : la RLS sur ai_embeddings vérifiera
+    // que les lignes retournées appartiennent bien à l'agence courante.
+    // Le filtre WHERE agence_id = $2 reste en place comme défense en profondeur.
+    const rows = await this.prisma.withTenant(agence_id, (tx) =>
+      tx.$queryRawUnsafe<RawRow[]>(
+        `SELECT id, source_type, source_id, chunk_index, content,
+                1 - (embedding <=> $1::vector) AS similarity
+         FROM ai_embeddings
+         WHERE agence_id = $2
+           ${params.sourceType ? `AND source_type = $3` : ''}
+         ORDER BY embedding <=> $1::vector
+         LIMIT $${params.sourceType ? 4 : 3}`,
+        vectorStr,
+        agence_id,
+        ...(params.sourceType ? [params.sourceType, topK] : [topK]),
+      ),
     );
 
     return rows.map((r) => ({

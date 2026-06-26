@@ -1,6 +1,7 @@
 import { Global, Module } from '@nestjs/common';
 
 import { TenantContextService } from '../../_core/tenancy/tenant-context.service';
+import { PrismaAdminService } from './prisma-admin.service';
 import { PrismaService } from './prisma.service';
 
 @Global()
@@ -8,7 +9,8 @@ import { PrismaService } from './prisma.service';
   providers: [
     TenantContextService,
     PrismaService,
+    PrismaAdminService,
   ],
-  exports: [PrismaService],
+  exports: [PrismaService, PrismaAdminService],
 })
 export class PrismaModule {}
