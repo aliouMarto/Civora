@@ -78,5 +78,115 @@
     "title": "Notifications",
     "empty": "Aucune notification",
     "mark_read": "Marquer comme lu"
+  },
+  "contacts": {
+    "title": "Contacts",
+    "new": "Nouveau contact",
+    "back_to_list": "Retour à la liste",
+    "ask_kura": "Demander à KURA",
+    "filters": {
+      "search_placeholder": "Rechercher par nom, email, téléphone…",
+      "score_all": "Score IA — tous",
+      "score_cold": "Froid (<40)",
+      "score_warm": "Tiède (40–69)",
+      "score_hot": "Chaud (≥70)",
+      "source_all": "Source — toutes",
+      "whatsapp_opt_in": "WhatsApp opt-in",
+      "more_filters": "Plus de filtres",
+      "save_segment": "Sauvegarder en segment"
+    },
+    "table": {
+      "name": "Nom",
+      "roles": "Rôle(s)",
+      "email": "Email",
+      "telephone": "Téléphone",
+      "city": "Ville",
+      "source": "Source",
+      "segments_ia": "Segments IA",
+      "score": "Score",
+      "created": "Créé",
+      "last_interaction": "Dernière interaction",
+      "empty": "Aucun contact ne correspond aux filtres.",
+      "load_more": "Charger plus"
+    },
+    "stats": {
+      "total": "Contacts",
+      "hot": "Chauds (≥ 70)",
+      "wa_optin": "WhatsApp opt-in",
+      "recent_activity": "Activité 7j"
+    },
+    "form": {
+      "identity": "Identité",
+      "channels": "Canaux",
+      "details": "Détails",
+      "nom": "Nom",
+      "prenom": "Prénom",
+      "genre": "Genre",
+      "langue": "Langue",
+      "email": "Email",
+      "telephone": "Téléphone (E.164, ex. +2250707070707)",
+      "whatsapp": "WhatsApp (E.164)",
+      "whatsapp_opt_in_label": "Le contact a explicitement accepté de recevoir des WhatsApp",
+      "source": "Source",
+      "pays": "Pays (ISO 3166-1 alpha-2)",
+      "address": "Adresse",
+      "address_complement": "Complément d'adresse",
+      "ville": "Ville",
+      "commune": "Commune",
+      "roles": "Rôles cumulables",
+      "tags": "Tags (séparés par virgule)",
+      "save": "Créer le contact",
+      "save_edit": "Enregistrer",
+      "cancel": "Annuler",
+      "at_least_one_channel": "email OU telephone est requis"
+    },
+    "dedup": {
+      "title": "Doublons potentiels détectés",
+      "hard_conflict": "Un contact avec le même email ou numéro existe déjà dans cette agence.",
+      "soft_warning": "Des contacts similaires existent dans cette agence. Vérifiez avant de continuer.",
+      "open": "Ouvrir",
+      "continue_anyway": "Continuer quand même",
+      "blocked": "Bloqué côté serveur",
+      "email_match": "Email identique",
+      "phone_match": "Téléphone identique",
+      "name_match": "Nom similaire"
+    },
+    "tabs": {
+      "profile": "Profil",
+      "relations": "Relations immobilières",
+      "interactions": "Interactions & activités",
+      "scoring": "Scoring & segments IA"
+    },
+    "scoring": {
+      "understand": "Comprendre",
+      "confidence": "Confiance",
+      "low_warning": "Estimation préliminaire — peu d'historique disponible.",
+      "factors": "Facteurs détaillés",
+      "no_factors": "Aucun facteur n'a contribué (score nul).",
+      "ai_segments": "Segments IA actuels",
+      "no_segments": "Aucun segment IA pour l'instant.",
+      "formula_link": "Formule détaillée"
+    },
+    "actions": {
+      "call": "Appeler",
+      "email": "Email",
+      "whatsapp": "WhatsApp",
+      "interaction": "Interaction",
+      "edit": "Éditer",
+      "archive": "Archiver",
+      "confirm_archive_title": "Archiver ce contact ?",
+      "confirm_archive_body": "Le contact sera masqué des listes par défaut. Aucune donnée n'est supprimée.",
+      "export_csv": "Exporter CSV"
+    },
+    "kura": {
+      "placeholder": "Posez votre question… (Ctrl/⌘+Enter pour envoyer)",
+      "intro": "Posez votre première question — KURA répond avec les contacts pertinents de votre agence.",
+      "thinking": "KURA réfléchit…",
+      "cited": "Contacts cités :"
+    },
+    "errors": {
+      "not_found_title": "Contact introuvable",
+      "not_found_body": "Ce contact n'existe pas ou n'appartient pas à votre agence."
+    }
   }
 }

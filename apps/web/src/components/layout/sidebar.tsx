@@ -44,7 +44,7 @@ const NAV: NavGroup[] = [
   {
     label: t('nav.crm'),
     items: [
-      { label: t('nav.contacts'), href: '/crm/contacts', icon: <Users size={16} /> },
+      { label: t('nav.contacts'), href: '/contacts', icon: <Users size={16} /> },
       { label: t('nav.leads'), href: '/crm/leads', icon: <UserCheck size={16} /> },
     ],
   },

@@ -9,6 +9,12 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;
   size?: Size;
   loading?: boolean;
+  /**
+   * Si fourni, remplace l'élément racine `<button>` par cet élément (typiquement
+   * `<Link>` Next). Inspiré de l'API shadcn/Radix Slot, version minimaliste : on
+   * clone l'enfant et lui passe les classes calculées.
+   */
+  asChild?: boolean;
 }
 
 const variants: Record<Variant, string> = {
@@ -25,19 +31,29 @@ const sizes: Record<Size, string> = {
 };
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ variant = 'primary', size = 'md', loading, disabled, className = '', children, ...props }, ref) => {
+  ({ variant = 'primary', size = 'md', loading, disabled, asChild, className = '', children, ...props }, ref) => {
+    const classes = [
+      'inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors',
+      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+      'disabled:pointer-events-none disabled:opacity-50',
+      variants[variant],
+      sizes[size],
+      className,
+    ].join(' ');
+
+    if (asChild && React.isValidElement(children)) {
+      // Clone l'enfant (typiquement <Link>) en lui ajoutant les classes calculées.
+      const childProps = (children.props ?? {}) as { className?: string };
+      return React.cloneElement(children as React.ReactElement<{ className?: string }>, {
+        className: `${classes} ${childProps.className ?? ''}`,
+      });
+    }
+
     return (
       <button
         ref={ref}
         disabled={disabled ?? loading}
-        className={[
-          'inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
-          'disabled:pointer-events-none disabled:opacity-50',
-          variants[variant],
-          sizes[size],
-          className,
-        ].join(' ')}
+        className={classes}
         {...props}
       >
         {loading && (
