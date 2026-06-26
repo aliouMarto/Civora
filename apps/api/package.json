@@ -10,7 +10,9 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "seed": "ts-node --project tsconfig.json -e \"require('tsconfig-paths/register')\" prisma/seed.ts"
+    "seed": "ts-node --project tsconfig.json -e \"require('tsconfig-paths/register')\" prisma/seed.ts",
+    "seed:contacts": "ts-node --project tsconfig.json -e \"require('tsconfig-paths/register')\" prisma/seeds/contacts.seed.ts",
+    "seed:dev": "pnpm seed && pnpm seed:contacts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1075.0",

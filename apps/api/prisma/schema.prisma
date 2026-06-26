@@ -29,6 +29,9 @@ model Agence {
 
   entites      Entite[]
   utilisateurs Utilisateur[]
+  contacts     Contact[]
+  segments     Segment[]
+  interactions Interaction[]
 
   @@map("agences")
 }
@@ -336,4 +339,127 @@ model AiBudget {
   updated_at      DateTime @updatedAt
 
   @@map("ai_budgets")
+}
+
+// ─────────────────────────────────────────────
+// CONTACTS — CRM : prospects, locataires, propriétaires, partenaires...
+// ─────────────────────────────────────────────
+//
+// Un même contact peut cumuler plusieurs rôles (ex: propriétaire ET acheteur).
+// Pas de contrainte UNIQUE sur email/telephone côté DB : NULL multiple autorisé
+// par Postgres, l'unicité conditionnelle ("si rempli, unique par agence") est
+// gérée côté service. Voir migration 20260626000001_contacts/migration.sql.
+//
+// roles[] et tags[] : text[] Postgres natif, indexé GIN pour les requêtes
+// "WHERE 'locataire' = ANY(roles)" en O(log n).
+
+model Contact {
+  id               String   @id @default(uuid()) @db.Uuid
+  agence_id        String   @db.Uuid
+
+  // Identité
+  nom              String
+  prenom           String?
+  genre            String?                          // 'M' | 'F' | 'AUTRE'
+  langue           String   @default("fr")
+
+  // Canaux
+  email            String?
+  telephone        String?                          // E.164 (validation côté service)
+  whatsapp         String?                          // E.164 ; null = pas de WhatsApp
+  whatsapp_opt_in  Boolean  @default(false)         // consentement explicite (RGPD/ARTCI)
+
+  // Localisation
+  adresse_ligne1   String?
+  adresse_ligne2   String?
+  ville            String?
+  commune          String?                          // Cocody, Plateau, Marcory...
+  pays             String   @default("CI")          // ISO 3166-1 alpha-2
+
+  // Rôles multiples cumulables
+  roles            String[] @default([])            // 'prospect','locataire','proprietaire','acheteur','voyageur','partenaire'
+
+  // Source d'acquisition
+  source           String?                          // 'portail','reseau','walk_in','referencement','site_web','import','autre'
+
+  // Tags libres + segmentation IA
+  tags             String[] @default([])
+  segments_ia      String[] @default([])
+
+  // Scoring IA (worker scoring)
+  score_ia         Int?                             // 0-100
+  score_categorie  String?                          // 'froid' | 'tiede' | 'chaud'
+  score_updated_at DateTime?
+
+  // Audit / temporel
+  derniere_interaction_at DateTime?
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+  created_by       String?  @db.Uuid
+
+  agence           Agence          @relation(fields: [agence_id], references: [id], onDelete: Restrict)
+  interactions     Interaction[]
+  segments_membre  SegmentMembre[]
+
+  @@index([agence_id])
+  @@index([agence_id, email])
+  @@index([agence_id, telephone])
+  @@index([agence_id, score_ia])
+  @@index([agence_id, ville])
+  // Index GIN sur roles/tags : déclaré explicitement dans migration.sql
+  // (Prisma ne supporte pas USING GIN dans @@index)
+  @@map("contacts")
+}
+
+model Segment {
+  id          String   @id @default(uuid()) @db.Uuid
+  agence_id   String   @db.Uuid
+  nom         String
+  description String?
+  filtres     Json                                  // DSL JSON sérialisé du filtre
+  systeme     Boolean  @default(false)              // segments système non supprimables
+  created_by  String?  @db.Uuid
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  agence      Agence          @relation(fields: [agence_id], references: [id], onDelete: Restrict)
+  membres     SegmentMembre[]
+
+  @@unique([agence_id, nom])
+  @@index([agence_id])
+  @@map("segments")
+}
+
+model SegmentMembre {
+  segment_id String   @db.Uuid
+  contact_id String   @db.Uuid
+  added_at   DateTime @default(now())
+
+  segment    Segment  @relation(fields: [segment_id], references: [id], onDelete: Cascade)
+  contact    Contact  @relation(fields: [contact_id], references: [id], onDelete: Cascade)
+
+  @@id([segment_id, contact_id])
+  @@index([contact_id])
+  @@map("segment_membres")
+}
+
+model Interaction {
+  id          String   @id @default(uuid()) @db.Uuid
+  agence_id   String   @db.Uuid
+  contact_id  String   @db.Uuid
+  type        String                                // 'email','whatsapp','sms','appel','visite','note'
+  direction   String?                               // 'sortant' | 'entrant' | null pour 'note'
+  sujet       String?
+  contenu     String?                               // texte (anonymisé/résumé)
+  metadata    Json     @default("{}")               // ids externes, durée d'appel, etc.
+  occurred_at DateTime @default(now())
+  created_by  String?  @db.Uuid
+  created_at  DateTime @default(now())
+
+  agence      Agence  @relation(fields: [agence_id], references: [id], onDelete: Restrict)
+  contact     Contact @relation(fields: [contact_id], references: [id], onDelete: Cascade)
+
+  @@index([agence_id, contact_id, occurred_at])
+  @@index([agence_id, type, occurred_at])
+  @@map("interactions")
 }
