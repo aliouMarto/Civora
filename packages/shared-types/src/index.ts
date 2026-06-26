@@ -18,3 +18,6 @@ export * from './tenant';
 
 // Errors
 export * from './errors';
+
+// Contacts (CRM)
+export * from './contacts';

@@ -17,6 +17,7 @@ import { BullBoardModule } from './_core/jobs/bull-board.module';
 import { TenancyModule } from './_core/tenancy/tenancy.module';
 import { UsersModule } from './_core/users/users.module';
 import { RbacModule } from './_core/rbac/rbac.module';
+import { ContactsModule } from './_core/contacts/contacts.module';
 import { HealthModule } from './health/health.module';
 import { DevModule } from './dev/dev.module';
 import { envSchema } from './infrastructure/config/env.schema';
@@ -43,6 +44,7 @@ import { RedisModule } from './infrastructure/redis/redis.module';
     RealtimeModule,
     AuditModule,
     WorkflowsModule,
+    ContactsModule,
     ObservabilityModule,
     HealthModule,
     ...(process.env['NODE_ENV'] !== 'production' ? [DevModule, BullBoardModule] : []),

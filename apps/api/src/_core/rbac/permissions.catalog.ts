@@ -5,6 +5,7 @@
 const MODULES = [
   'biens',
   'crm',
+  'contacts',
   'locations',
   'saisonnier',
   'ventes',
