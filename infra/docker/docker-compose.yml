@@ -2,7 +2,11 @@ name: civora
 
 services:
   postgres:
-    image: postgis/postgis:16-3.4
+    # Image custom : PostGIS 3.4 + pgvector (cf. infra/docker/postgres/Dockerfile)
+    build:
+      context: ./postgres
+      dockerfile: Dockerfile
+    image: civora-postgres:16-3.4-pgvector
     container_name: civora-postgres
     restart: unless-stopped
     environment:

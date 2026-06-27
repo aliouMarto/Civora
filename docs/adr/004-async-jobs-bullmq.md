@@ -30,7 +30,7 @@ BullMQ est la bibliothèque choisie. Elle s'appuie sur `ioredis` (déjà présen
 |------|-------------|----------|---------|-------|
 | `pdf` | 4 | 3 | 5s exp | Génération Gotenberg |
 | `ocr` | 4 | 5 | 10s exp | Extraction texte documents |
-| `ai` | 8 | 3 | 3s exp | Appels LLM Claude |
+| `ai` | 8 | 3 | 3s exp | Appels LLM (Gemini / OpenAI) |
 | `messaging` | 10 | 5 | 5s exp | Email / SMS |
 | `payments` | 2 | **10** | 15s exp | Paiements (critique) |
 | `ota` | 4 | 5 | 10s exp | Sync Airbnb/Booking |

@@ -71,7 +71,7 @@ Le `TenantMiddleware` positionne le contexte en entrée de chaque requête HTTP 
 - Testable de façon adversariale (voir `rls-isolation.spec.ts`).
 
 ### Négatives / Contraintes
-- Toute nouvelle table métier **doit** suivre le process RLS (migration + politiques). Un checklist est maintenu dans `CLAUDE.md`.
+- Toute nouvelle table métier **doit** suivre le process RLS (migration + politiques). La charte est dans `civora.md` (section 5.1).
 - Les opérations admin (migrations Prisma) doivent utiliser un `DATABASE_URL` avec `civora_admin`, pas `civora_app`.
 - `$executeRaw` dans le code applicatif doit toujours s'assurer que `app.agence_id` est positionné (garanti par le middleware Prisma).
 
