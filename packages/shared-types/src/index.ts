@@ -24,3 +24,9 @@ export * from './contacts';
 
 // Biens (catalogue immobilier)
 export * from './biens';
+
+// Insights IA (table mutualisée)
+export * from './insights';
+
+// Biens — scoring multi-dim (étape 3)
+export * from './biens-scoring';

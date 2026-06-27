@@ -16,8 +16,23 @@ import { BiensStatsService } from './biens-stats.service';
 import { BiensRepository } from './repositories/biens.repository';
 import { BiensGeoRepository } from './repositories/biens-geo.repository';
 
+import { BiensScoringModule } from './scoring/scoring.module';
+import { BiensInsightsModule } from './insights/insights.module';
+import { AskKuraBiensModule } from './ask-kura/ask-kura-biens.module';
+import { BiensIndexerModule } from './indexing/biens-indexer.module';
+import { GeocodingModule } from './geocoding/geocoding.module';
+
 @Module({
-  imports: [AuditModule, EventsModule, StorageModule],
+  imports: [
+    AuditModule,
+    EventsModule,
+    StorageModule,
+    BiensScoringModule,
+    BiensInsightsModule,
+    AskKuraBiensModule,
+    BiensIndexerModule,
+    GeocodingModule,
+  ],
   controllers: [BiensController, BienPhotosController],
   providers: [
     BiensService,
@@ -28,6 +43,15 @@ import { BiensGeoRepository } from './repositories/biens-geo.repository';
     BiensRepository,
     BiensGeoRepository,
   ],
-  exports: [BiensService, BiensRepository, BiensSpatialService, BiensStatsService],
+  exports: [
+    BiensService,
+    BiensRepository,
+    BiensSpatialService,
+    BiensStatsService,
+    BiensScoringModule,
+    BiensInsightsModule,
+    AskKuraBiensModule,
+    GeocodingModule,
+  ],
 })
 export class BiensModule {}

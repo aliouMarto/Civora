@@ -8,6 +8,9 @@ const nextConfig: NextConfig = {
 
   env: {
     NEXT_PUBLIC_API_URL: process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:3001',
+    // Token PUBLIC Mapbox (scope pk.*) — exposable au client.
+    // Le token SECRET (sk.*) reste côté backend pour le reverse-geocoding.
+    NEXT_PUBLIC_MAPBOX_TOKEN: process.env['MAPBOX_TOKEN_PUBLIC'] ?? '',
   },
 
   compiler: {

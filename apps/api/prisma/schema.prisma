@@ -676,3 +676,33 @@ model BienHistorique {
   @@index([agence_id, bien_id, debut])
   @@map("bien_historique")
 }
+
+// ─────────────────────────────────────────────
+// INSIGHTS — Recommandations IA actionnables
+// ─────────────────────────────────────────────
+// Table mutualisée pour tous les modules (biens, contacts, finances...) via
+// le champ `module`. Pattern identique à ImportJob/ExportJob.
+
+model Insight {
+  id           String    @id @default(uuid()) @db.Uuid
+  agence_id    String    @db.Uuid
+  module       String                              // 'biens' | 'contacts' | ...
+  type         String                              // 'repositionnement','pricing','anomalie_loyer','diversification','demande_zone'
+  cible_type   String?                             // 'bien' | 'agence' | 'commune'
+  cible_id     String?   @db.Uuid                  // id de la cible (peut être null pour insights globaux)
+  severity     String    @default("info")          // 'info' | 'warn' | 'critical'
+  titre        String
+  message      String
+  action_label String?
+  action_url   String?
+  data         Json                                // facteurs, valeurs comparées
+  dismissed_at DateTime?
+  acted_on_at  DateTime?
+  expires_at   DateTime?
+  created_at   DateTime  @default(now())
+
+  @@index([agence_id, module, severity, dismissed_at])
+  @@index([agence_id, cible_type, cible_id])
+  @@index([agence_id, module, created_at])
+  @@map("insights")
+}

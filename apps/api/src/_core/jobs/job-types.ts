@@ -109,6 +109,13 @@ export interface ExportContactsPayload extends BaseJobPayload {
 }
 export type ExportsJobPayload = ExportContactsPayload;
 
+// ── biens-scoring ────────────────────────────────────────────────────────────
+export interface BienScoringPayload extends BaseJobPayload {
+  bien_id: string;
+  trigger: 'created' | 'updated' | 'statut_changed' | 'photo_added' | 'manual';
+}
+export type BiensScoringJobPayload = BienScoringPayload;
+
 // ── demo (dev uniquement) ─────────────────────────────────────────────────────
 export interface DemoPingPayload extends BaseJobPayload {
   message?: string;

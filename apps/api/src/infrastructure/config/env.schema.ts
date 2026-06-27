@@ -32,6 +32,11 @@ export const envSchema = z.object({
   SMTP_FROM: z.string().default('Civora <no-reply@civora.io>'),
   SMTP_USER: z.string().optional(),
   SMTP_PASS: z.string().optional(),
+  // ── Mapbox (carte + reverse-geocoding) ────────────────────────────────────
+  // Token PUBLIC (scope pk.*) : utilisé côté client pour le rendu de la carte.
+  // Token SECRET (scope sk.*) : utilisé côté serveur pour la Geocoding API.
+  MAPBOX_TOKEN_PUBLIC: z.string().optional(),
+  MAPBOX_TOKEN_SECRET: z.string().optional(),
   // ── Stockage R2 (production) ──────────────────────────────────────────────
   R2_ACCOUNT_ID: z.string().optional(),
   R2_ACCESS_KEY_ID: z.string().optional(),

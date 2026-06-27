@@ -10,6 +10,7 @@ export const QUEUE_NAMES = [
   'reports',
   'imports',
   'exports',
+  'biens-scoring',
   'scheduled',
 ] as const;
 
@@ -33,6 +34,9 @@ export const QUEUES: Record<QueueName, QueueConfig> = {
   // manuellement (l'agence doit relire le rapport d'erreurs).
   imports:   { concurrency: 2,  attempts: 1,  backoff: { type: 'exponential', delay: 30_000 } },
   exports:   { concurrency: 2,  attempts: 1,  backoff: { type: 'exponential', delay: 30_000 } },
+  // biens-scoring : recalcul async sur events bien.created/updated/statut_changed.
+  // Concurrency élevée car calcul léger ; retry agressif (l'erreur signale un bug).
+  'biens-scoring': { concurrency: 8, attempts: 3, backoff: { type: 'exponential', delay: 3_000 } },
   scheduled: { concurrency: 2,  attempts: 3,  backoff: { type: 'exponential', delay: 60_000 } },
 } as const;
 

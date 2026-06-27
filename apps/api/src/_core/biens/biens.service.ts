@@ -23,6 +23,7 @@ import {
   type BienStatutChangedPayload,
   type BienUpdatedPayload,
 } from './events/bien-events';
+import { ReverseGeocodingService } from './geocoding/reverse-geocoding.service';
 
 import type { CreateBienDto } from './dto/create-bien.dto';
 import type { UpdateBienDto } from './dto/update-bien.dto';
@@ -42,6 +43,7 @@ export class BiensService {
     private readonly tenantCtx: TenantContextService,
     private readonly eventBus: EventBusService,
     private readonly audit: AuditService,
+    private readonly geocoding: ReverseGeocodingService,
   ) {}
 
   // ─── Read ────────────────────────────────────────────────────────────────
@@ -103,6 +105,21 @@ export class BiensService {
 
     this.validateBusinessRules(dto);
 
+    // Reverse-geocoding : si lat/lng fournis mais commune/ville absentes,
+    // on enrichit via Mapbox. Best-effort (n'échoue pas la création si
+    // Mapbox est down ou absent).
+    let commune = dto.commune;
+    let ville = dto.ville;
+    if (dto.latitude !== undefined && dto.longitude !== undefined && (!commune || !ville)) {
+      const geocoded = await this.geocoding.reverse(dto.latitude, dto.longitude);
+      commune = commune ?? geocoded.commune ?? undefined;
+      // ville reste obligatoire dans le DTO — si l'utilisateur l'a déjà
+      // fournie, on respecte sa valeur. Sinon on prend celle de Mapbox.
+      if (geocoded.ville) {
+        ville = ville && ville.trim().length > 0 ? ville : geocoded.ville;
+      }
+    }
+
     const reference = dto.reference
       ? await this.assertReferenceFree(agence_id, dto.reference)
       : await this.generateReference(agence_id);
@@ -132,8 +149,8 @@ export class BiensService {
               amenities: dto.amenities ?? [],
               adresse_ligne1: dto.adresse_ligne1.trim(),
               adresse_ligne2: dto.adresse_ligne2 ?? null,
-              ville: dto.ville.trim(),
-              commune: dto.commune ?? null,
+              ville: (ville ?? dto.ville).trim(),
+              commune: commune ?? null,
               pays: dto.pays ?? 'CI',
               latitude: dto.latitude ?? null,
               longitude: dto.longitude ?? null,

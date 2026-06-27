@@ -3,9 +3,12 @@ import type { PromptTemplate } from './prompt-template.interface';
 import { smokeHelloTemplate } from './catalog/smoke-hello.template';
 import { relanceLocataireTemplate } from './catalog/relance-locataire.template';
 import { contactsAskKuraTemplate } from './catalog/contacts-ask-kura.template';
+import { biensAskKuraTemplate } from './catalog/biens-ask-kura.template';
 
 const CATALOG: Map<string, PromptTemplate> = new Map(
-  [smokeHelloTemplate, relanceLocataireTemplate, contactsAskKuraTemplate].map((t) => [t.id, t]),
+  [smokeHelloTemplate, relanceLocataireTemplate, contactsAskKuraTemplate, biensAskKuraTemplate].map(
+    (t) => [t.id, t],
+  ),
 );
 
 @Injectable()
