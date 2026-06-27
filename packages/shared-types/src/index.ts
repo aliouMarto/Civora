@@ -21,3 +21,6 @@ export * from './errors';
 
 // Contacts (CRM)
 export * from './contacts';
+
+// Biens (catalogue immobilier)
+export * from './biens';
