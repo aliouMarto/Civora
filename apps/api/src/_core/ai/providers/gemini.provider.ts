@@ -12,7 +12,7 @@ import type {
 @Injectable()
 export class GeminiProvider implements IAiProvider {
   readonly name = 'gemini' as const;
-  readonly defaultChatModel = 'gemini-1.5-flash';
+  readonly defaultChatModel = 'gemini-2.5-flash';
   readonly defaultEmbedModel = 'text-embedding-004';
   readonly inputCostPer1kCents = 0;   // Gratuit dans les limites du free tier
   readonly outputCostPer1kCents = 0;

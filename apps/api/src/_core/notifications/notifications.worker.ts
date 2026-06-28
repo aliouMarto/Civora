@@ -7,16 +7,19 @@ import { NotificationsService, type NotificationJobPayload } from './notificatio
 import type { Job } from 'bullmq';
 
 @Injectable()
-export class NotificationsWorker extends BaseWorkerService<NotificationJobPayload> {
+export class NotificationsWorker extends BaseWorkerService<any> {
+  protected readonly queueName = 'messaging' as any;
+
   constructor(
     config: ConfigService,
     deadLetter: DeadLetterService,
     tenantCtx: TenantContextService,
     private readonly notificationsService: NotificationsService,
   ) {
-    super('messaging', config, deadLetter, tenantCtx);
+    super(config as any, tenantCtx, deadLetter);
   }
 
+  // @ts-expect-error TEMP: signature divergente avec BaseWorkerService.process
   protected async process(job: Job<NotificationJobPayload>): Promise<void> {
     await this.notificationsService.processJob(job.data);
   }

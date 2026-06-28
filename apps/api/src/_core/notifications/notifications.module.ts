@@ -7,8 +7,10 @@ import { EmailChannel } from './channels/email.channel';
 import { SmsChannel } from './channels/sms.channel';
 import { WhatsappChannel } from './channels/whatsapp.channel';
 import { InAppChannel } from './channels/in-app.channel';
+import { JobsModule } from '../jobs/jobs.module';
 
 @Module({
+  imports: [JobsModule],
   providers: [
     NotificationsService,
     NotificationsWorker,

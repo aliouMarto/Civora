@@ -141,8 +141,8 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 
       Object.defineProperty(this, accessorName, {
         value: proxy,
-        writable: false,
-        configurable: false,
+        writable: true,
+        configurable: true,
         enumerable: true,
       });
     }

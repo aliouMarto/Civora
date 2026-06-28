@@ -9,6 +9,6 @@ import { StorageService } from './storage.service';
   imports: [TenancyModule],
   providers: [S3ClientService, StorageService],
   controllers: [StorageController],
-  exports: [StorageService],
+  exports: [StorageService, S3ClientService],
 })
 export class StorageModule {}

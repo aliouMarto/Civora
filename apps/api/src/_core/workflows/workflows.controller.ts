@@ -19,7 +19,7 @@ import { WorkflowEngineService } from './workflow-engine.service';
 import { AuditService } from '../audit/audit.service';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { JwtPayload } from '../auth/decorators/current-user.decorator';
-import { RequirePermissions } from '../rbac/permissions.decorator';
+import { RequirePermissions } from '../auth/decorators/permissions.decorator';
 import type { RunContext } from './workflow-engine.service';
 
 @Controller('workflows')

@@ -87,17 +87,24 @@ async function main(): Promise<void> {
   console.log('🌱  Seeding système roles...');
 
   for (const role of SYSTEM_ROLES) {
-    await prisma.role.upsert({
-      where: { slug: role.slug },
-      update: { nom: role.nom, permissions: role.permissions as string[] },
-      create: {
-        slug: role.slug,
-        nom: role.nom,
-        permissions: role.permissions as string[],
-        systeme: role.systeme,
-      },
+    const existing = await prisma.role.findFirst({
+      where: { nom: role.nom, agence_id: null },
     });
-    console.log(`  ✓ Role: ${role.slug}`);
+    if (existing) {
+      await prisma.role.update({
+        where: { id: existing.id },
+        data: { permissions: role.permissions as unknown as string[] },
+      });
+    } else {
+      await prisma.role.create({
+        data: {
+          nom: role.nom,
+          permissions: role.permissions as unknown as string[],
+          systeme: role.systeme,
+        },
+      });
+    }
+    console.log(`  ✓ Role: ${role.slug} (${role.nom})`);
   }
 
   // SuperAdmin de développement — uniquement en environnement non-production
@@ -129,7 +136,7 @@ async function main(): Promise<void> {
         parallelism: 4,
       });
 
-      const adminRole = await prisma.role.findUnique({ where: { slug: 'admin' } });
+      const adminRole = await prisma.role.findFirst({ where: { nom: 'Administrateur', agence_id: null } });
       if (!adminRole) throw new Error('Role admin introuvable — seed roles en premier');
 
       const superAdmin = await prisma.utilisateur.create({

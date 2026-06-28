@@ -4,9 +4,21 @@ import { IoAdapter } from '@nestjs/platform-socket.io';
 
 import { AppModule } from './app.module';
 
+// BigInt → string in JSON.stringify (used for FCFA amounts stored as bigint).
+(BigInt.prototype as unknown as { toJSON: () => string }).toJSON = function (): string {
+  return this.toString();
+};
+
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
   const logger = new Logger('Bootstrap');
+
+  app.enableCors({
+    origin: process.env['WEB_ORIGIN']?.split(',') ?? ['http://localhost:3000'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Correlation-Id'],
+  });
 
   app.useGlobalPipes(
     new ValidationPipe({

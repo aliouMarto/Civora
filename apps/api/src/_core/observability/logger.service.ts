@@ -10,7 +10,8 @@ import pino from 'pino';
 export class PinoLoggerService implements LoggerService {
   private readonly logger: pino.Logger;
 
-  constructor(nodeEnv = process.env['NODE_ENV'] ?? 'development') {
+  constructor() {
+    const nodeEnv = process.env['NODE_ENV'] ?? 'development';
     this.logger = pino({
       level: nodeEnv === 'production' ? 'info' : 'debug',
       ...(nodeEnv !== 'production'

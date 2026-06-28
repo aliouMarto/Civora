@@ -40,12 +40,25 @@ export class RealtimeGateway
   afterInit(server: Server): void {
     const redisUrl = this.config.get<string>('REDIS_URL');
     if (redisUrl) {
-      const pub = new Redis(redisUrl);
-      const sub = pub.duplicate();
-      server.adapter(createAdapter(pub, sub));
-      this.logger.log('Socket.IO Redis adapter activé');
+      try {
+        const pub = new Redis(redisUrl);
+        const sub = pub.duplicate();
+        // TEMP: server.adapter peut ne pas être dispo selon l'adapter actif
+        if (typeof (server as any).adapter === 'function') {
+          server.adapter(createAdapter(pub, sub));
+          this.logger.log('Socket.IO Redis adapter activé');
+        } else {
+          this.logger.warn('server.adapter indisponible — Redis adapter ignoré');
+        }
+      } catch (err) {
+        this.logger.warn(`Redis adapter init échec: ${(err as Error).message}`);
+      }
     }
-    this.realtimeService.setServer(server);
+    try {
+      this.realtimeService.setServer(server);
+    } catch (err) {
+      this.logger.warn(`setServer échec: ${(err as Error).message}`);
+    }
     this.logger.log('RealtimeGateway initialisé');
   }
 

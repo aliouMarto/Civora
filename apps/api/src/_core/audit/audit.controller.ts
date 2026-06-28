@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { TenantContextService } from '../tenancy/tenant-context.service';
-import { RequirePermissions } from '../rbac/permissions.decorator';
+import { RequirePermissions } from '../auth/decorators/permissions.decorator';
 
 @Controller('admin/audit')
 export class AuditController {
