@@ -17,6 +17,7 @@ import { useToast } from '@/components/ui/toast';
 
 import { STATUT_LABELS, TYPE_LABELS, USAGE_LABELS } from '@/lib/biens/labels';
 import { useCreateBien, useUpdateBien } from '@/lib/api/biens.api';
+import { PhotosUploader } from './photos-uploader';
 
 interface BienFormProps {
   mode: 'create' | 'edit';
@@ -308,6 +309,16 @@ export function BienForm({ mode, bienId, initial }: BienFormProps): React.ReactE
             />
           </div>
         </div>
+      </Section>
+
+      <Section title="5. Photos">
+        {mode === 'edit' && bienId ? (
+          <PhotosUploader bienId={bienId} />
+        ) : (
+          <div className="rounded-lg border border-dashed border-neutral-300 bg-neutral-50 p-4 text-sm text-neutral-600">
+            Vous pourrez ajouter des photos après avoir créé le bien.
+          </div>
+        )}
       </Section>
 
       <div className="flex items-center justify-end gap-2 border-t border-neutral-200 bg-white py-4">

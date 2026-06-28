@@ -68,7 +68,14 @@ export class BienPhotosService {
     const agence_id = this.tenantCtx.requireAgenceId();
     const bien = await this.biens.getByIdOrThrow(bienId);
 
-    if (!dto.storage_key.startsWith(`tenants/${agence_id}/`)) {
+    // Dev shortcut : on accepte les data URLs et URLs http(s) directes
+    // (utile quand R2 n'est pas configuré localement). En prod, la storage_key
+    // doit être préfixée par tenants/<agence_id>/ pour garantir l'isolation.
+    const isDirectUrl =
+      dto.storage_key.startsWith('http://') ||
+      dto.storage_key.startsWith('https://') ||
+      dto.storage_key.startsWith('data:');
+    if (!isDirectUrl && !dto.storage_key.startsWith(`tenants/${agence_id}/`)) {
       throw new ForbiddenException('storage_key ne correspond pas à cette agence');
     }
     // (Optionnel) vérifier que la clé inclut bien le prefixe entite_id si défini —
@@ -122,6 +129,22 @@ export class BienPhotosService {
     });
     return Promise.all(
       photos.map(async (p) => {
+        // Dev/seed shortcut: si storage_key est déjà une URL publique, on la retourne directement.
+        const isDirectUrl =
+          p.storage_key.startsWith('http://') ||
+          p.storage_key.startsWith('https://') ||
+          p.storage_key.startsWith('data:');
+        if (isDirectUrl) {
+          return {
+            id: p.id,
+            storage_key: p.storage_key,
+            caption: p.caption,
+            ordre: p.ordre,
+            url: p.storage_key,
+            url_expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+            created_at: p.created_at.toISOString(),
+          };
+        }
         const signed = await this.storage.getDownloadUrl(p.storage_key);
         return {
           id: p.id,

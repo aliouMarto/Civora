@@ -29,7 +29,10 @@ export class UploadPhotoDto {
 }
 
 export class RegisterPhotoDto {
-  @IsString() @MaxLength(500)
+  // En production, storage_key est une clé R2 (< 500 chars).
+  // En dev, on accepte aussi une data URL base64 ou une URL http(s) directe,
+  // qui peut dépasser 500 chars (jusqu'à ~7 Mo pour une image 5 Mo encodée).
+  @IsString() @MaxLength(10_000_000)
   storage_key!: string;
 
   @IsOptional() @IsString() @MaxLength(255)
