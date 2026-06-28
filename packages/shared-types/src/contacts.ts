@@ -70,32 +70,40 @@ const Iso2Schema = z
 
 // ─── Schémas Contact ───────────────────────────────────────────────────────
 
-export const CreateContactSchema = z
-  .object({
-    nom: z.string().trim().min(1).max(120),
-    prenom: z.string().trim().min(1).max(120).optional(),
-    genre: z.enum(CONTACT_GENRES).optional(),
-    langue: z.enum(CONTACT_LANGUES).default('fr'),
-    email: z.string().email().toLowerCase().optional(),
-    telephone: E164Schema.optional(),
-    whatsapp: E164Schema.optional(),
-    whatsapp_opt_in: z.boolean().default(false),
-    adresse_ligne1: z.string().max(255).optional(),
-    adresse_ligne2: z.string().max(255).optional(),
-    ville: z.string().max(120).optional(),
-    commune: z.string().max(120).optional(),
-    pays: Iso2Schema.default('CI'),
-    roles: z.array(z.enum(CONTACT_ROLES)).default([]),
-    source: z.enum(CONTACT_SOURCES).optional(),
-    tags: z.array(z.string().min(1).max(40)).max(50).default([]),
-  })
-  .refine((d) => Boolean(d.email) || Boolean(d.telephone), {
+// Objet de base — réutilisé par Create (avec refine) et Update (partial).
+// .refine() retourne un ZodEffects qui n'expose pas .partial() : on garde donc
+// la version "brute" à part.
+const ContactBaseSchema = z.object({
+  nom: z.string().trim().min(1).max(120),
+  prenom: z.string().trim().min(1).max(120).optional(),
+  genre: z.enum(CONTACT_GENRES).optional(),
+  langue: z.enum(CONTACT_LANGUES).default('fr'),
+  email: z.string().email().toLowerCase().optional(),
+  telephone: E164Schema.optional(),
+  whatsapp: E164Schema.optional(),
+  whatsapp_opt_in: z.boolean().default(false),
+  adresse_ligne1: z.string().max(255).optional(),
+  adresse_ligne2: z.string().max(255).optional(),
+  ville: z.string().max(120).optional(),
+  commune: z.string().max(120).optional(),
+  pays: Iso2Schema.default('CI'),
+  roles: z.array(z.enum(CONTACT_ROLES)).default([]),
+  source: z.enum(CONTACT_SOURCES).optional(),
+  tags: z.array(z.string().min(1).max(40)).max(50).default([]),
+});
+
+export const CreateContactSchema = ContactBaseSchema.refine(
+  (d) => Boolean(d.email) || Boolean(d.telephone),
+  {
     message: 'Au moins un canal requis : email ou telephone',
     path: ['email'],
-  });
+  },
+);
 export type CreateContactInput = z.infer<typeof CreateContactSchema>;
 
-export const UpdateContactSchema = CreateContactSchema.partial().extend({});
+// Update : tous les champs optionnels. L'invariant "au moins un canal" est
+// re-vérifié côté service après merge avec le contact existant.
+export const UpdateContactSchema = ContactBaseSchema.partial();
 export type UpdateContactInput = z.infer<typeof UpdateContactSchema>;
 
 export const CheckDuplicatesSchema = z

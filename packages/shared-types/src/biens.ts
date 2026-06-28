@@ -69,42 +69,46 @@ const BigIntCentsSchema = z
 
 // ─── Création / mise à jour ────────────────────────────────────────────────
 
-export const CreateBienSchema = z
-  .object({
-    reference: z.string().max(40).optional(), // auto-générée si absente
-    nom: z.string().trim().min(1).max(180),
-    description: z.string().max(5000).optional(),
+// Objet de base — réutilisé par Create (avec refines) et Update (partial).
+// .refine() retourne un ZodEffects qui n'expose pas .partial() : on garde donc
+// la version "brute" à part.
+const BienBaseSchema = z.object({
+  reference: z.string().max(40).optional(), // auto-générée si absente
+  nom: z.string().trim().min(1).max(180),
+  description: z.string().max(5000).optional(),
 
-    type: z.enum(BIEN_TYPES),
-    usage: z.enum(BIEN_USAGES).default('location_longue_duree'),
-    statut: z.enum(BIEN_STATUTS).default('disponible'),
+  type: z.enum(BIEN_TYPES),
+  usage: z.enum(BIEN_USAGES).default('location_longue_duree'),
+  statut: z.enum(BIEN_STATUTS).default('disponible'),
 
-    surface: z.number().positive().max(100_000).optional(),
-    pieces: z.number().int().nonnegative().max(50).optional(),
-    chambres: z.number().int().nonnegative().max(50).optional(),
-    salles_bain: z.number().int().nonnegative().max(50).optional(),
-    etage: z.number().int().min(-5).max(150).optional(),
-    annee_construction: z.number().int().min(1800).max(new Date().getFullYear() + 5).optional(),
-    amenities: z.array(z.string().min(1).max(40)).max(40).default([]),
+  surface: z.number().positive().max(100_000).optional(),
+  pieces: z.number().int().nonnegative().max(50).optional(),
+  chambres: z.number().int().nonnegative().max(50).optional(),
+  salles_bain: z.number().int().nonnegative().max(50).optional(),
+  etage: z.number().int().min(-5).max(150).optional(),
+  annee_construction: z.number().int().min(1800).max(new Date().getFullYear() + 5).optional(),
+  amenities: z.array(z.string().min(1).max(40)).max(40).default([]),
 
-    adresse_ligne1: z.string().trim().min(1).max(255),
-    adresse_ligne2: z.string().max(255).optional(),
-    ville: z.string().trim().min(1).max(120),
-    commune: z.string().max(120).optional(),
-    pays: Iso2Schema.default('CI'),
-    latitude: LatSchema.optional(),
-    longitude: LngSchema.optional(),
+  adresse_ligne1: z.string().trim().min(1).max(255),
+  adresse_ligne2: z.string().max(255).optional(),
+  ville: z.string().trim().min(1).max(120),
+  commune: z.string().max(120).optional(),
+  pays: Iso2Schema.default('CI'),
+  latitude: LatSchema.optional(),
+  longitude: LngSchema.optional(),
 
-    prix_vente_xof: BigIntCentsSchema.optional(),
-    loyer_mensuel_xof: BigIntCentsSchema.optional(),
-    charges_xof: BigIntCentsSchema.optional(),
-    caution_xof: BigIntCentsSchema.optional(),
+  prix_vente_xof: BigIntCentsSchema.optional(),
+  loyer_mensuel_xof: BigIntCentsSchema.optional(),
+  charges_xof: BigIntCentsSchema.optional(),
+  caution_xof: BigIntCentsSchema.optional(),
 
-    proprietaire_id: z.string().uuid().optional(),
-    agent_responsable_id: z.string().uuid().optional(),
-    entite_id: z.string().uuid().optional(),
-    tags: z.array(z.string().min(1).max(40)).max(40).default([]),
-  })
+  proprietaire_id: z.string().uuid().optional(),
+  agent_responsable_id: z.string().uuid().optional(),
+  entite_id: z.string().uuid().optional(),
+  tags: z.array(z.string().min(1).max(40)).max(40).default([]),
+});
+
+export const CreateBienSchema = BienBaseSchema
   .refine(
     (d) => !(d.usage === 'vente' || d.usage === 'mixte') || d.prix_vente_xof !== undefined,
     { message: 'prix_vente_xof est requis quand usage in [vente, mixte]', path: ['prix_vente_xof'] },
@@ -121,8 +125,9 @@ export const CreateBienSchema = z
   );
 export type CreateBienInput = z.infer<typeof CreateBienSchema>;
 
-// Update : tous les champs optionnels, agence_id et reference interdits côté API.
-export const UpdateBienSchema = CreateBienSchema.partial().omit({});
+// Update : tous les champs optionnels, refines re-vérifiés côté service après merge.
+// agence_id et reference sont immuables (check côté service).
+export const UpdateBienSchema = BienBaseSchema.partial();
 export type UpdateBienInput = z.infer<typeof UpdateBienSchema>;
 
 // ─── Liste / filtres ───────────────────────────────────────────────────────
