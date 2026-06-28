@@ -16,6 +16,8 @@ import { ContactsStats } from './_components/contacts-stats';
 import { AskKuraContacts } from './_components/ask-kura-contacts';
 import { ExportDialog } from './_components/export-dialog';
 
+const EMPTY_PERMISSIONS: readonly string[] = [];
+
 interface ScoreChangedEvent {
   contact_id: string;
   agence_id: string;
@@ -34,7 +36,7 @@ export default function ContactsPage(): React.ReactElement {
   const [askOpen, setAskOpen] = React.useState(false);
   const [exportOpen, setExportOpen] = React.useState(false);
 
-  const permissions = useAuthStore((s) => s.user?.permissions ?? []);
+  const permissions = useAuthStore((s) => s.user?.permissions ?? EMPTY_PERMISSIONS);
   const canExport = permissions.includes('*:*') || permissions.includes('contacts:export');
   const canWrite = permissions.includes('*:*') || permissions.includes('contacts:write');
 

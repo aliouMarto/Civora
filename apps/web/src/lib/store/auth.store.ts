@@ -1,6 +1,7 @@
 'use client';
 
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
 
 export interface AuthUser {
   id: string;
@@ -21,13 +22,24 @@ interface AuthState {
   updateAccessToken: (accessToken: string) => void;
 }
 
-export const useAuthStore = create<AuthState>()((set) => ({
-  accessToken: null,
-  user: null,
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      accessToken: null,
+      user: null,
 
-  setSession: (accessToken, user) => set({ accessToken, user }),
+      setSession: (accessToken, user) => set({ accessToken, user }),
 
-  clearSession: () => set({ accessToken: null, user: null }),
+      clearSession: () => set({ accessToken: null, user: null }),
 
-  updateAccessToken: (accessToken) => set({ accessToken }),
-}));
+      updateAccessToken: (accessToken) => set({ accessToken }),
+    }),
+    {
+      name: 'civora-auth',
+      storage: createJSONStorage(() =>
+        typeof window !== 'undefined' ? window.localStorage : (undefined as unknown as Storage),
+      ),
+      partialize: (state) => ({ accessToken: state.accessToken, user: state.user }),
+    },
+  ),
+);

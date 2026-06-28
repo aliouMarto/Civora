@@ -51,7 +51,7 @@ const NAV: NavGroup[] = [
   {
     label: t('nav.immobilier'),
     items: [
-      { label: t('nav.biens'), href: '/immobilier/biens', icon: <Building2 size={16} /> },
+      { label: t('nav.biens'), href: '/biens', icon: <Building2 size={16} /> },
       { label: t('nav.baux'), href: '/immobilier/baux', icon: <FileText size={16} /> },
     ],
   },

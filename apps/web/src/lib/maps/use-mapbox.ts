@@ -23,14 +23,19 @@ interface UseMapboxOptions {
 export function useMapbox(
   containerRef: React.RefObject<HTMLDivElement | null>,
   opts: UseMapboxOptions = {},
-): { map: mapboxgl.Map | null; ready: boolean } {
+): { map: mapboxgl.Map | null; ready: boolean; tokenMissing: boolean } {
   const [map, setMap] = React.useState<mapboxgl.Map | null>(null);
   const [ready, setReady] = React.useState(false);
+  const [tokenMissing, setTokenMissing] = React.useState(false);
 
   React.useEffect(() => {
     if (!containerRef.current) return;
     initMapbox();
-    if (!mapboxgl.accessToken) return;
+    if (!mapboxgl.accessToken) {
+      setTokenMissing(true);
+      return;
+    }
+    setTokenMissing(false);
 
     const instance = new mapboxgl.Map({
       container: containerRef.current,
@@ -47,11 +52,28 @@ export function useMapbox(
     );
 
     instance.on('load', () => {
+      // Force resize au cas où le container n'avait pas sa hauteur finale au mount.
+      instance.resize();
       setMap(instance);
       setReady(true);
     });
 
+    instance.on('error', (e: unknown) => {
+      // eslint-disable-next-line no-console
+      console.error('[Mapbox] error', e);
+    });
+
+    // Resize après 200ms (sécurité supplémentaire pour le 1er paint).
+    const resizeT = setTimeout(() => {
+      try {
+        instance.resize();
+      } catch {
+        /* noop */
+      }
+    }, 200);
+
     return () => {
+      clearTimeout(resizeT);
       instance.remove();
       setMap(null);
       setReady(false);
@@ -59,5 +81,5 @@ export function useMapbox(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [containerRef]);
 
-  return { map, ready };
+  return { map, ready, tokenMissing };
 }

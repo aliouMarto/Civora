@@ -18,9 +18,10 @@ import { AskKuraBiens } from './_components/ask-kura-biens';
 import { useBiens, type BiensFiltersInput } from '@/lib/api/biens.api';
 
 const VIEW_STORAGE_KEY = 'civora:biens:view';
+const EMPTY_PERMISSIONS: readonly string[] = [];
 
 export default function BiensPage(): React.ReactElement {
-  const [view, setView] = React.useState<BiensView>('list');
+  const [view, setView] = React.useState<BiensView>('grid');
   const [filters, setFilters] = React.useState<BiensFiltersInput>({});
   const [askOpen, setAskOpen] = React.useState(false);
 
@@ -34,7 +35,7 @@ export default function BiensPage(): React.ReactElement {
     window.localStorage.setItem(VIEW_STORAGE_KEY, view);
   }, [view]);
 
-  const permissions = useAuthStore((s) => s.user?.permissions ?? []);
+  const permissions = useAuthStore((s) => s.user?.permissions ?? EMPTY_PERMISSIONS);
   const canWrite = permissions.includes('*:*') || permissions.includes('biens:write');
 
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useBiens(filters);
@@ -53,14 +54,12 @@ export default function BiensPage(): React.ReactElement {
             <Sparkles size={14} className="mr-1.5" />
             Demander à KURA
           </Button>
-          {canWrite ? (
-            <Button asChild>
-              <Link href="/biens/new">
-                <Plus size={14} className="mr-1.5" />
-                Nouveau bien
-              </Link>
-            </Button>
-          ) : null}
+          <Button asChild>
+            <Link href="/biens/new">
+              <Plus size={14} className="mr-1.5" />
+              Nouveau bien
+            </Link>
+          </Button>
         </div>
       </div>
 

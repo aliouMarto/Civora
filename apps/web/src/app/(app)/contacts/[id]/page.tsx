@@ -39,6 +39,8 @@ import { TabInteractions } from '../_components/contact-360/tab-interactions';
 import { TabScoring } from '../_components/contact-360/tab-scoring';
 import { ContactForm } from '../_components/contact-form';
 
+const EMPTY_PERMISSIONS: readonly string[] = [];
+
 function hasPermission(perms: string[], required: string): boolean {
   return perms.includes('*:*') || perms.includes(required);
 }
@@ -76,7 +78,7 @@ export default function ContactDetailPage(): React.ReactElement {
   const archiveMut = useArchiveContact();
   const updateMut = useUpdateContact(id ?? '');
 
-  const permissions = useAuthStore((s) => s.user?.permissions ?? []);
+  const permissions = useAuthStore((s) => s.user?.permissions ?? EMPTY_PERMISSIONS);
   const canWrite = hasPermission(permissions, 'contacts:write');
   const canDelete = hasPermission(permissions, 'contacts:delete');
 
@@ -213,10 +215,29 @@ export default function ContactDetailPage(): React.ReactElement {
                 </Button>
               ) : null}
               {data.email ? (
-                <Button asChild variant="ghost" size="sm">
-                  <a href={`mailto:${data.email}`} title="Email">
-                    <Mail size={14} /> Email
-                  </a>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  title={`Envoyer un email à ${data.email}`}
+                  onClick={() => {
+                    const email = data.email!;
+                    // Copie l'email dans le presse-papier (fallback si mailto ne fonctionne pas)
+                    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+                      void navigator.clipboard.writeText(email);
+                    }
+                    // Tente d'ouvrir le client mail par défaut
+                    window.open(`mailto:${email}`, '_self');
+                    // Fallback ultime: Gmail web dans un nouvel onglet après 200ms si rien ne s'est passé
+                    setTimeout(() => {
+                      window.open(
+                        `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(email)}`,
+                        '_blank',
+                        'noopener,noreferrer',
+                      );
+                    }, 200);
+                  }}
+                >
+                  <Mail size={14} /> Email
                 </Button>
               ) : null}
               {data.whatsapp && data.whatsapp_opt_in ? (

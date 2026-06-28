@@ -23,6 +23,8 @@ import { TabScoring } from '../_components/bien-360/tab-scoring';
 import { useArchiveBien, useBien } from '@/lib/api/biens.api';
 import { useAuthStore } from '@/lib/store/auth.store';
 
+const EMPTY_PERMISSIONS: readonly string[] = [];
+
 type TabValue = 'infos' | 'pricing' | 'occupation' | 'photos' | 'historique' | 'documents' | 'scoring';
 
 const TABS: Array<{ label: string; value: TabValue }> = [
@@ -44,7 +46,7 @@ export default function BienFichePage(): React.ReactElement {
   const { toast } = useToast();
   const [tab, setTab] = React.useState<TabValue>('infos');
 
-  const permissions = useAuthStore((s) => s.user?.permissions ?? []);
+  const permissions = useAuthStore((s) => s.user?.permissions ?? EMPTY_PERMISSIONS);
   const canWrite = permissions.includes('*:*') || permissions.includes('biens:write');
   const canDelete = permissions.includes('*:*') || permissions.includes('biens:delete');
 
